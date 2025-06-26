@@ -7,15 +7,15 @@ import lombok.Setter;
 public class Lecturer extends User {
 
     /*
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
+    @Getter
+    @Setter
     protected Department department;
 
      */
 
     /*
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
+    @Getter
+    @Setter
     private List<Course> LecturingCourses;
 
      */

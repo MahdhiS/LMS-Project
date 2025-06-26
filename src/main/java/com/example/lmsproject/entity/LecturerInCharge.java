@@ -7,8 +7,8 @@ import lombok.Setter;
 public class LecturerInCharge extends Lecturer {
 
     /*
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
+    @Getter
+    @Setter
     private List<Course> LicCourses;
 
      */
