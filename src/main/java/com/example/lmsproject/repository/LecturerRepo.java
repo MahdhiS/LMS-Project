@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LecturerRepo extends JpaRepository<Lecturer, String> {
     Lecturer findByLecturerID(String lecturerID);
-    Lecturer findByUserId(String userId);
+    Lecturer findByUsername(String username);
 }

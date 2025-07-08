@@ -5,8 +5,11 @@ import com.example.lmsproject.repository.LecturerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
-public class LecturerService implements ServiceTemplate<Lecturer> {
+public class LecturerService implements UserService<Lecturer> {
 
     @Autowired
     private LecturerRepo lecturerRepo;
@@ -43,6 +46,18 @@ public class LecturerService implements ServiceTemplate<Lecturer> {
 
     public Lecturer update(Lecturer lecturer){
         return lecturerRepo.save(lecturer);
+    }
+
+    public Map<String, String> get(String lecturerID){
+        Lecturer lecturer = lecturerRepo.findByLecturerID(lecturerID);
+
+        Map<String, String> lecturerMap = new HashMap<>();
+        lecturerMap.put("lecturerID", lecturer.getLecturerID());
+        lecturerMap.put("email", lecturer.getEmail());
+        lecturerMap.put("phone", lecturer.getPhone());
+        lecturerMap.put("isLIC", String.valueOf(lecturer.isLIC()));
+
+        return lecturerMap;
     }
 
 }
