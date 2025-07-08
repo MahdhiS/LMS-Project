@@ -33,20 +33,20 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    public Student getStudentById(@PathVariable Long id) {
+    public Student getStudentById(@PathVariable String id) {
         return studentService.getStudentById(id);
     }
 
 
     //update
     @PutMapping("/{id}")
-    public Student updateStudent(@PathVariable long id, @RequestBody Student student) {
+    public Student updateStudent(@PathVariable String id, @RequestBody Student student) {
         return studentService.updateDetails(id, student);
     }
 
 
     @DeleteMapping("/delete/{id}")
-    public String deleteStudent(@PathVariable Long id) {
+    public String deleteStudent(@PathVariable String id) {
         boolean deleted = studentService.deleteStudent(id);
         if (deleted) {
             return "Student deleted successfully!";

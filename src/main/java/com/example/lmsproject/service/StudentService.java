@@ -23,7 +23,7 @@ public class StudentService {
         return studentRepository.saveAll(student);
     }
 
-    public Student getStudentById(Long id){
+    public Student getStudentById(String id){
         return studentRepository.findById(id).orElse(null);
     }
 
@@ -35,7 +35,7 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
-    public Student updateDetails(Long id, Student updatedStudent) {
+    public Student updateDetails(String id, Student updatedStudent) {
         Student student = studentRepository.findById(id).orElse(null);
         if (student != null) {
             student.setFirstName(updatedStudent.getFirstName());
@@ -47,7 +47,7 @@ public class StudentService {
     }
 
 
-    public boolean deleteStudent(Long id) {
+    public boolean deleteStudent(String id) {
         if (studentRepository.existsById(id)) {
             studentRepository.deleteById(id);
             return true;
