@@ -1,13 +1,18 @@
 package com.example.lmsproject.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "departments")
 public class Department {
 
@@ -26,7 +31,15 @@ public class Department {
     @JsonIgnore
     private List<Student> students = new ArrayList<>();
 
-    public Department() {}
+    // ONE-TO-MANY: Department has many courses
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Course> courses = new ArrayList<>();
+
+//    // ONE-TO-MANY: Department has many lecturers
+//    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @JsonIgnore
+//    private List<Lecturer> lecturers = new ArrayList<>();
 
     public Department(String name, String description, List<Student> students) {
         this.name = name;
@@ -65,4 +78,20 @@ public class Department {
     public void setStudents(List<Student> students) {
         this.students = students;
     }
+
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Course> courses) {
+        this.courses = courses;
+    }
+
+//    public List<Lecturer> getLecturers() {
+//        return lecturers;
+//    }
+//
+//    public void setLecturers(List<Lecturer> lecturers) {
+//        this.lecturers = lecturers;
+//    }
 }

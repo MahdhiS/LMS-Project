@@ -1,6 +1,8 @@
 package com.example.lmsproject.controller;
 
+import com.example.lmsproject.entity.Course;
 import com.example.lmsproject.entity.Student;
+import com.example.lmsproject.service.CourseService;
 import com.example.lmsproject.service.DepartmentService;
 import com.example.lmsproject.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ public class StudentController {
     private StudentService studentService;
     @Autowired
     private DepartmentService departmentService;
+    @Autowired
+    private CourseService courseService;
 
     //create
     @PostMapping("")
@@ -59,6 +63,7 @@ public class StudentController {
     }
 
 
+    //enroll to department
     @PutMapping("/{userId}/assign-department/{departmentId}")
     public Student assignStudentToDepartment(
             @PathVariable String userId,
@@ -71,6 +76,31 @@ public class StudentController {
         return studentService.getStudentsByDepartmentId(departmentId);
     }
 
+
+    //course
+    @GetMapping("/{studentId}/courses")
+    public List<Course> getStudentCourses(@PathVariable String studentId) {
+        return courseService.getStudentCourses(studentId);
+    }
+
+    @PostMapping("/{studentId}/enroll/{courseId}")
+    public Course enrollInCourse(
+            @PathVariable String studentId,
+            @PathVariable Long courseId) {
+
+        return courseService.enrollStudentInCourse(studentId, courseId);
+
+    }
+
+
+    @DeleteMapping("/{studentId}/drop/{courseId}")
+    public Course dropCourse(
+            @PathVariable String studentId,
+            @PathVariable Long courseId) {
+
+       return courseService.dropStudentFromCourse(studentId, courseId);
+
+    }
 
 
 }
