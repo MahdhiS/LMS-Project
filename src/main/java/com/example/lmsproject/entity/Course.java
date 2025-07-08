@@ -1,5 +1,5 @@
-package com.example.lmsproject.entity;
-
-public class Course {
-
-}
+//package com.example.lmsproject.entity;
+//
+//public class Course {
+//
+//}
