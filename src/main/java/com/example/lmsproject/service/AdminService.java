@@ -2,6 +2,7 @@ package com.example.lmsproject.service;
 
 import com.example.lmsproject.entity.Admin;
 import com.example.lmsproject.repository.AdminRepo;
+import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,16 @@ public class AdminService implements UserService<Admin> {
     private AdminRepo adminRepo;
 
     public Admin create(Admin admin){
+
+        String lastUserID = adminRepo.getLastUserID();
+        if(lastUserID != null){
+            admin.setUserId(Utils.nextId(lastUserID));
+        } else {
+            admin.setUserId("USER-0000001");
+        }
+
+        admin.setRole("ADMIN");
+
         return adminRepo.save(admin);
     }
 
