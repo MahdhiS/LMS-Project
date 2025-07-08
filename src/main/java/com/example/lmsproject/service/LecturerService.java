@@ -38,10 +38,15 @@ public class LecturerService implements UserService<Lecturer> {
         return lecturerRepo.save(lecturer);
     }
 
-    public Lecturer delete(String lecturerID){
+    public boolean delete(String lecturerID){
         Lecturer lecturer = lecturerRepo.findByLecturerID(lecturerID);
+
+        if(lecturer == null){
+            return false;
+        }
+
         lecturerRepo.delete(lecturer);
-        return lecturer;
+        return true;
     }
 
     public Lecturer update(Lecturer lecturer){
@@ -58,6 +63,14 @@ public class LecturerService implements UserService<Lecturer> {
         lecturerMap.put("isLIC", String.valueOf(lecturer.isLIC()));
 
         return lecturerMap;
+    }
+
+    public boolean addLecturerToDepartment(Lecturer lecturer, String departmentID){
+
+        //lecturer.set // Department
+
+        return true;
+
     }
 
 }

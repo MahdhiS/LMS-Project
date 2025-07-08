@@ -18,11 +18,16 @@ public class AdminService implements UserService<Admin> {
         return adminRepo.save(admin);
     }
 
-    public Admin delete(String userName){
+    public boolean delete(String userName){
 
         Admin admin = adminRepo.findByUsername(userName);
+
+        if(admin == null){
+            return false;
+        }
+
         adminRepo.delete(admin);
-        return admin;
+        return true;
 
     }
 
