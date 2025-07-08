@@ -1,8 +1,10 @@
 package com.example.lmsproject.controller;
 
 import com.example.lmsproject.entity.Student;
+import com.example.lmsproject.service.DepartmentService;
 import com.example.lmsproject.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +15,8 @@ public class StudentController {
 
     @Autowired
     private StudentService studentService;
+    @Autowired
+    private DepartmentService departmentService;
 
     //create
     @PostMapping("")
@@ -54,6 +58,18 @@ public class StudentController {
         return "Student not found!";
     }
 
+
+    @PutMapping("/{userId}/assign-department/{departmentId}")
+    public Student assignStudentToDepartment(
+            @PathVariable String userId,
+            @PathVariable Long departmentId) {
+        return studentService.assignStudentToDepartment(userId, departmentId);
+    }
+
+    @GetMapping("/department/{departmentId}")
+    public List<Student> getStudentsByDepartment(@PathVariable Long departmentId) {
+        return studentService.getStudentsByDepartmentId(departmentId);
+    }
 
 
 

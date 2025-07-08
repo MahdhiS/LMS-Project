@@ -13,9 +13,9 @@ public class Student extends User {
     private String studentId;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id", nullable = true)
-    @JsonBackReference  // ADD THIS LINE
+//    @JsonBackReference  // ADD THIS LINE
     private Department department;
 
     public Student() {
