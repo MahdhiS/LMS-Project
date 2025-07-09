@@ -2,6 +2,7 @@ package com.example.lmsproject.service;
 
 import com.example.lmsproject.entity.Lecturer;
 import com.example.lmsproject.repository.LecturerRepo;
+import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,24 @@ public class LecturerService implements UserService<Lecturer> {
     private LecturerRepo lecturerRepo;
 
     public Lecturer create(Lecturer lecturer){
+
+        String lastLecturerID = lecturerRepo.getLastLecturerID();
+        String lastUserID = lecturerRepo.getLastUserID();
+
+        if(lastUserID != null){
+            lecturer.setUserId(Utils.nextId(lastUserID));
+        } else {
+            lecturer.setUserId("USER-0000001");
+        }
+
+        if(lastLecturerID != null){
+            lecturer.setLecturerID(Utils.nextId(lastLecturerID));
+        } else {
+            lecturer.setLecturerID("LEC-00001");
+        }
+
+        lecturer.setRole("LECTURER");
+
         return lecturerRepo.save(lecturer);
     }
 
