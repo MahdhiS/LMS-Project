@@ -6,9 +6,9 @@ public interface ServiceInterface<T> {
 
     public T create(T t);
 
-    public T delete(String userName);
+    public boolean delete(String userName);
 
-    public T update(T t);
+    public T update(T t, String id);
 
     public Map<String, String> get(String userName);
 

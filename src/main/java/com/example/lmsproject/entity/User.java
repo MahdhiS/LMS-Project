@@ -57,4 +57,9 @@ abstract class User {
     @Column(name = "gender")
     private String gender;
 
+    @Getter
+    @Setter
+    @Column(name = "role")
+    private String role;
+
 }
