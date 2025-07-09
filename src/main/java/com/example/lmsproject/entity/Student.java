@@ -35,17 +35,6 @@ public class Student extends User {
     private List<Course> courses = new ArrayList<>();
 
 
-    public Student(String userId, String username, String password, String firstName, String lastName, String email, String phone, String dateOfBirth, String gender, String studentId) {
-        super(userId, username, password, firstName, lastName, email, phone, dateOfBirth, gender);
-        this.studentId = studentId;
-        this.department = null;
-    }
-
-    public Student(String userId, String username, String password, String firstName, String lastName, String email, String phone, String dateOfBirth, String gender, String studentId, Department department) {
-        super(userId, username, password, firstName, lastName, email, phone, dateOfBirth, gender);
-        this.studentId = studentId;
-        this.department = department;
-    }
 
     public String getStudentId() {
         return studentId;

@@ -21,7 +21,7 @@ public class Lecturer extends User {
     @Column(name = "lecturer_id")
     private String lecturerID;
 
-    /*
+
     @ManyToMany
     @JoinTable(
             name = "lecturer_course",
@@ -32,7 +32,7 @@ public class Lecturer extends User {
     @Setter
     private List<Course> lecturingCourses = new ArrayList<>();
 
-     */
+
 
 
     @Getter
