@@ -4,15 +4,29 @@ import com.example.lmsproject.entity.Lecturer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface LecturerRepo extends JpaRepository<Lecturer, String> {
 
     Lecturer findByLecturerID(String lecturerID);
     Lecturer findByUsername(String username);
 
-    @Query("SELECT user_id FROM users ORDER BY user_id DESC LIMIT 1")
-    String getLastUserID();
+    @Query("SELECT u.id FROM User u ORDER BY u.id DESC")
+    List<String> findAllUserIdsOrderByIdDesc();
 
-    @Query("SELECT lecturer_id FROM lecturers ORDER BY lecturer_id DESC LIMIT 1")
-    String getLastLecturerID();
+    @Query("SELECT lecturerID FROM Lecturer ORDER BY lecturerID DESC")
+    List<String> findAllLecturerIdsOrderByIdDesc();
+
+    // Helper methods to get last IDs
+    default String getLastUserID() {
+        List<String> ids = findAllUserIdsOrderByIdDesc();
+        return ids.isEmpty() ? null : ids.getFirst();
+    }
+
+    default String getLastLecturerID() {
+        List<String> ids = findAllLecturerIdsOrderByIdDesc();
+        return ids.isEmpty() ? null : ids.getFirst();
+    }
+
 
 }

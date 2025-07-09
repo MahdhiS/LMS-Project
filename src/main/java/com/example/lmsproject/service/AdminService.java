@@ -1,5 +1,6 @@
 package com.example.lmsproject.service;
 
+import com.example.lmsproject.auth.PWEncoder;
 import com.example.lmsproject.entity.Admin;
 import com.example.lmsproject.repository.AdminRepo;
 import com.example.lmsproject.utils.Utils;
@@ -25,6 +26,8 @@ public class AdminService implements UserService<Admin> {
         }
 
         admin.setRole("ADMIN");
+        admin.setAdminStatus(true);
+        admin.setPassword(PWEncoder.encode(admin.getPassword()));
 
         return adminRepo.save(admin);
     }
@@ -44,11 +47,23 @@ public class AdminService implements UserService<Admin> {
 
     public Admin changePassword(String userName, String password){
         Admin admin = adminRepo.findByUsername(userName);
-        admin.setPassword(password);
+        admin.setPassword(PWEncoder.encode(password));
         return adminRepo.save(admin);
     }
 
-    public Admin update(Admin admin){
+    public Admin update(Admin admin, String userName){
+
+        Admin adminToUpdate = adminRepo.findByUsername(userName);
+
+        if(adminToUpdate != null){
+            adminToUpdate.setEmail(admin.getEmail());
+            adminToUpdate.setPhone(admin.getPhone());
+            adminToUpdate.setFirstName(admin.getFirstName());
+            adminToUpdate.setLastName(admin.getLastName());
+            adminToUpdate.setDateOfBirth(admin.getDateOfBirth());
+            return adminRepo.save(adminToUpdate);
+        }
+
         return adminRepo.save(admin);
     }
 

@@ -12,6 +12,6 @@ public class Admin extends User {
     @Getter
     @Setter
     @Column(name = "is_admin")
-    private boolean isAdmin;
+    private boolean adminStatus;
 
 }
