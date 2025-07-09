@@ -22,28 +22,6 @@ public class LecturerController {
 
     }
 
-    @PostMapping("/new")
-    public ResponseEntity<String> newLecturer(@RequestBody Lecturer lecturer){
-
-        if(lecturerService.create(lecturer) != null){
-            return ResponseEntity.ok("Lecturer created successfully");
-        } else {
-            return ResponseEntity.badRequest().body("Lecturer creation failed");
-        }
-
-    }
-
-    @DeleteMapping("/delete/{lecturerId}")
-    public ResponseEntity<String> delete(@PathVariable String lecturerId){
-
-        if(lecturerService.delete(lecturerId)){
-            return ResponseEntity.ok("Lecturer deleted successfully");
-        } else {
-            return ResponseEntity.badRequest().body("Lecturer deletion failed");
-        }
-
-    }
-
     @PutMapping("/update")
     public ResponseEntity<String> update(@RequestBody Lecturer lecturer){
 
@@ -54,7 +32,7 @@ public class LecturerController {
         }
     }
 
-    @PutMapping("/changePassword")
+    @PutMapping ("/changePassword")
     public ResponseEntity<String> changePassword(@RequestBody Lecturer lecturer){
 
         if(lecturerService.changePassword(lecturer.getUserId(), lecturer.getPassword()) != null){
