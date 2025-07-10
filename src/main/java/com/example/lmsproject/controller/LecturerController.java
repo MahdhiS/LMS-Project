@@ -1,5 +1,6 @@
 package com.example.lmsproject.controller;
 
+import com.example.lmsproject.entity.Department;
 import com.example.lmsproject.entity.Lecturer;
 import com.example.lmsproject.entity.PasswordChangeRequest;
 import com.example.lmsproject.service.LecturerService;
@@ -45,12 +46,6 @@ public class LecturerController {
             return ResponseEntity.badRequest().body("Password change failed");
         }
 
-    }
-
-    // INOP - Pending
-    @PostMapping("/attachToDept")
-    public ResponseEntity<String> attachToDept(@RequestBody Lecturer lecturer){
-        return ResponseEntity.ok("Attached");
     }
 
 }

@@ -2,7 +2,11 @@ package com.example.lmsproject.service;
 
 import com.example.lmsproject.auth.PWEncoder;
 import com.example.lmsproject.entity.Admin;
+import com.example.lmsproject.entity.Department;
+import com.example.lmsproject.entity.Lecturer;
 import com.example.lmsproject.repository.AdminRepo;
+import com.example.lmsproject.repository.DepartmentRepository;
+import com.example.lmsproject.repository.LecturerRepo;
 import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +19,12 @@ public class AdminService implements UserService<Admin> {
 
     @Autowired
     private AdminRepo adminRepo;
+
+    @Autowired
+    private LecturerRepo lecturerRepo;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
     public Admin create(Admin admin){
 
@@ -76,6 +86,17 @@ public class AdminService implements UserService<Admin> {
         adminMap.put("phone", admin.getPhone());
 
         return adminMap;
+    }
+
+    public boolean attachLecturerToDepartment(String lecturerId, String departmentID){
+
+        Lecturer lecturer = lecturerRepo.findByLecturerID(lecturerId);
+        Department department = departmentRepository.getReferenceById(100L); // Replace with String departmnt ID
+
+        lecturer.setDepartment(department);
+
+        return true;
+
     }
 
 }

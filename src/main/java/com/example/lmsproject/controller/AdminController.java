@@ -120,4 +120,17 @@ public class AdminController {
 
     }
 
+
+    // INOP - Pending
+    @PutMapping("/{lecturerId}/attachToDept/{departmentId}")
+    public ResponseEntity<String> attachToDept(@PathVariable String  lecturerId, @PathVariable String departmentId){
+
+        if (adminService.attachLecturerToDepartment(lecturerId, departmentId)) {
+            return ResponseEntity.ok("Attached");
+        } else {
+            return ResponseEntity.badRequest().body("Attachment failed");
+        }
+
+    }
+
 }

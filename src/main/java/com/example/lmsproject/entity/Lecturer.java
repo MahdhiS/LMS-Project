@@ -1,21 +1,25 @@
 package com.example.lmsproject.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Lecturer extends User {
 
-    /*
+    @ManyToOne(fetch = FetchType.EAGER)
     @Getter
     @Setter
-    protected Department department;
+    private Department department;
 
-     */
+
     @Getter
     @Setter
     @Column(name = "lecturer_id")
