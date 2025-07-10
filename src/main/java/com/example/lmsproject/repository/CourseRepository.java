@@ -11,4 +11,5 @@ import java.util.List;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByDepartmentId(Long departmentId);
     List<Course> findByCourseNameContainingIgnoreCase(String courseName);
+    List<Course> findCourseByCourseId(Long courseId);
 }
