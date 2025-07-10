@@ -6,6 +6,7 @@ import com.example.lmsproject.entity.Student;
 import com.example.lmsproject.repository.CourseRepository;
 import com.example.lmsproject.repository.DepartmentRepository;
 import com.example.lmsproject.repository.StudentRepository;
+import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,14 @@ public class CourseService {
 
 
     public Course saveCourse(Course course) {
+        String lastCourseId = courseRepository.getLastCourseId();
+        if(lastCourseId != null){
+            course.setCourseId(Utils.nextId(lastCourseId));
+        }
+        else {
+            course.setCourseId("CRS-00001");
+        }
+
         return courseRepository.save(course);
     }
 

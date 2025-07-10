@@ -12,7 +12,7 @@ import java.util.List;
 public interface StudentRepository extends JpaRepository<Student, String> {
     List<Student> findByDepartmentId(Long departmentId);
 
-    Student findByStudentId(String lecturerID);
+    Student findByStudentId(String StudentId);
 
     Student findByUsername(String username);
 
