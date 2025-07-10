@@ -4,6 +4,7 @@ import com.example.lmsproject.entity.Department;
 import com.example.lmsproject.entity.Student;
 import com.example.lmsproject.repository.DepartmentRepository;
 import com.example.lmsproject.repository.StudentRepository;
+import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,15 @@ public class DepartmentService {
     private StudentRepository studentRepository;
 
     public Department saveDetails(Department department) {
+
+        String lastDepartmenId = departmentRepository.getLastdepartmentId();
+        if(lastDepartmenId != null){
+            department.setDepartmentId(Utils.nextId(lastDepartmenId));
+        }
+        else {
+            department.setDepartmentId("DEP-00001");
+        }
+
         return departmentRepository.save(department);
     }
 
