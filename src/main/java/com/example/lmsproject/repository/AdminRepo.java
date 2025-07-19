@@ -10,6 +10,7 @@ public interface AdminRepo extends JpaRepository<Admin, String> {
 
     Admin findByUsername(String username);
     Admin findByUserId(String userID);
+    List<Admin> findByRole(String role);
 
     @Query("SELECT u.id FROM User u ORDER BY u.id DESC")
     List<String> findAllUserIdsOrderByIdDesc();
