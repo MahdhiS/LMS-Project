@@ -42,12 +42,12 @@ public class CourseService {
         return courseRepository.findAll();
     }
 
-    public Course getCourseById(Long id) {
-        return courseRepository.findById(id).orElse(null);
+    public Course getCourseById(String id) {
+        return courseRepository.findCourseByCourseId(id);
     }
 
-    public List<Course> getCoursesByDepartment(Long departmentId) {
-        return courseRepository.findByDepartmentId(departmentId);
+    public List<Course> getCoursesByDepartment(String departmentId) {
+        return courseRepository.findByDepartmentDepartmentId(departmentId);
     }
 
     public Course updateCourse(Long id, Course updatedCourse) {

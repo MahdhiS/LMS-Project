@@ -28,12 +28,12 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
-    public Course getCourseById(@PathVariable Long id) {
+    public Course getCourseById(@PathVariable String id) {
         return courseService.getCourseById(id);
     }
 
     @GetMapping("/department/{departmentId}")
-    public List<Course> getCoursesByDepartment(@PathVariable Long departmentId) {
+    public List<Course> getCoursesByDepartment(@PathVariable String departmentId) {
         return courseService.getCoursesByDepartment(departmentId);
     }
 

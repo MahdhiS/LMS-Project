@@ -53,8 +53,8 @@ public class StudentService {
     }
 
 
-    public List<Student> getStudentsByDepartmentId(Long departmentId){
-        return studentRepository.findByDepartmentId(departmentId);
+    public List<Student> getStudentsByDepartmentId(String departmentId){
+        return studentRepository.findByDepartmentDepartmentId(departmentId);
     }
 
     public List<Student> getAllStudents(){
@@ -81,10 +81,10 @@ public class StudentService {
         return false;
     }
 
-    public Student assignStudentToDepartment(String userId, Long departmentId) {
+    public Student assignStudentToDepartment(String userId, String departmentId) {
         Student student = studentRepository.findById(userId).orElse(null);
         if (student != null) {
-            Department department = departmentRepository.findById(departmentId).orElse(null);
+            Department department = departmentRepository.findByDepartmentId(departmentId);
             student.setDepartment(department);
             return studentRepository.save(student);
         }

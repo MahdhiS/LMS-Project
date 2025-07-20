@@ -10,9 +10,9 @@ import java.util.List;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
-    List<Course> findByDepartmentId(Long departmentId);
+    List<Course> findByDepartmentDepartmentId(String departmentId);
 
-    List<Course> findCourseByCourseId(Long courseId);
+    Course findCourseByCourseId(String courseId);
 
 
     @Query("SELECT courseId FROM Course ORDER BY courseId DESC")

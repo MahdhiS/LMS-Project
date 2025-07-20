@@ -17,7 +17,6 @@ import java.util.List;
 public class Department {
 
     @Id
-
     private String departmentId;
 
     @Column(nullable = false)

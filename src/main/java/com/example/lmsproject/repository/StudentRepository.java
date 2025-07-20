@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, String> {
-    List<Student> findByDepartmentId(Long departmentId);
+    List<Student> findByDepartmentDepartmentId(String departmentId);
 
     Student findByStudentId(String StudentId);
 
@@ -33,6 +33,3 @@ public interface StudentRepository extends JpaRepository<Student, String> {
         return ids.isEmpty() ? null : ids.getFirst();
     }
 }
-
-
-
