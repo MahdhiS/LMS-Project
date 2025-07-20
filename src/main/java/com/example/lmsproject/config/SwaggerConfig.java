@@ -27,7 +27,7 @@ public class SwaggerConfig {
                                 .url("https://github.com/MahdhiS/LMS-Project"))
                         .contact(new Contact()
                                 .name("ravindutw")
-                                .email("ravindutw@gmail.com")
+                                .email("ravindu.rtw@outlook.com")
                                 .url("https://github.com/ravindutw/LMS-Project"))
                         .license(new License()
                                 .name("MIT License")

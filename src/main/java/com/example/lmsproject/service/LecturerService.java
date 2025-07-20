@@ -104,6 +104,9 @@ public class LecturerService implements UserService<Lecturer> {
         lecturerMap.put("email", lecturer.getEmail());
         lecturerMap.put("phone", lecturer.getPhone());
         lecturerMap.put("isLIC", String.valueOf(lecturer.isLIC()));
+        lecturerMap.put("firstName", lecturer.getFirstName());
+        lecturerMap.put("lastName", lecturer.getLastName());
+        lecturerMap.put("courses", lecturer.getLecturingCourses() != null ? lecturer.getLecturingCourses().toString() : "No Courses");
 
         return lecturerMap;
     }
