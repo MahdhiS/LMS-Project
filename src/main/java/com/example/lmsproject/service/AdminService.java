@@ -142,7 +142,7 @@ public class AdminService implements UserService<Admin> {
 
             JSONObject departmentJson = new JSONObject();
 
-            departmentJson.put("id", department.getId());
+            departmentJson.put("id", department.getDepartmentId());
             departmentJson.put("name", department.getName());
             departmentJson.put("description", department.getDescription());
 

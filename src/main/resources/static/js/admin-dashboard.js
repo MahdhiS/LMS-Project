@@ -321,7 +321,10 @@ class AdminDashboard {
     async loadDepartments() {
         try {
             const departments = await this.fetchJSON('/departments');
+            this.departments = departments; // Store for filtering
             this.renderDepartmentsTable(departments);
+            this.updateDepartmentStatistics(departments);
+            this.setupDepartmentSearch();
         } catch (error) {
             console.error('Error loading departments:', error);
             this.showAlert('Error loading departments', 'danger');
@@ -332,533 +335,295 @@ class AdminDashboard {
         const tbody = document.getElementById('departmentsTableBody');
         tbody.innerHTML = '';
 
-        departments.forEach(department => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${department.id}</td>
-                <td>${department.name}</td>
-                <td>${department.description || ''}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-warning btn-sm" onclick="dashboard.editDepartment(${department.id})">
-                            <i class="bi bi-pencil"></i> Edit
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="dashboard.deleteDepartment(${department.id})">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    </div>
-                </td>
+        if (departments.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="mt-2 text-muted">No departments found</p>
+                    </td>
+                </tr>
             `;
-            tbody.appendChild(row);
-        });
-    }
-
-    // Course Management
-    async loadCourses() {
-        try {
-            const courses = await this.fetchJSON('/courses');
-            this.renderCoursesTable(courses);
-            await this.loadDepartmentOptions('courseDepartment');
-        } catch (error) {
-            console.error('Error loading courses:', error);
-            this.showAlert('Error loading courses', 'danger');
-        }
-    }
-
-    renderCoursesTable(courses) {
-        const tbody = document.getElementById('coursesTableBody');
-        tbody.innerHTML = '';
-
-        courses.forEach(course => {
-            const row = document.createElement('tr');
-            const departmentName = course.department ? course.department.name : 'Not Assigned';
-
-            row.innerHTML = `
-                <td>${course.id}</td>
-                <td>${course.courseName}</td>
-                <td>${departmentName}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-warning btn-sm" onclick="dashboard.editCourse(${course.id})">
-                            <i class="bi bi-pencil"></i> Edit
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="dashboard.deleteCourse(${course.id})">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-
-    async loadDepartmentOptions(selectId) {
-        try {
-            const departments = await this.fetchJSON('/departments');
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Select Department</option>';
-
-            departments.forEach(department => {
-                const option = document.createElement('option');
-                option.value = department.id;
-                option.textContent = department.name;
-                select.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Error loading department options:', error);
-        }
-    }
-
-    // Modal Functions
-    openAdminModal(adminData = null) {
-        const modal = document.getElementById('adminModal');
-        const title = document.getElementById('adminModalTitle');
-
-        if (adminData) {
-            title.textContent = 'Edit Admin';
-            this.populateAdminForm(adminData);
-            this.currentEditId = adminData.username;
-            this.currentEditType = 'admin';
-        } else {
-            title.textContent = 'Add Admin';
-            this.clearAdminForm();
-            this.currentEditId = null;
-            this.currentEditType = null;
-        }
-
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
-    }
-
-    openLecturerModal(lecturerData = null) {
-        const modal = document.getElementById('lecturerModal');
-
-        if (lecturerData) {
-            this.populateLecturerForm(lecturerData);
-            this.currentEditId = lecturerData.userId;
-            this.currentEditType = 'lecturer';
-        } else {
-            this.clearLecturerForm();
-            this.currentEditId = null;
-            this.currentEditType = null;
-        }
-
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
-    }
-
-    openDepartmentModal(departmentData = null) {
-        const modal = document.getElementById('departmentModal');
-        const title = document.getElementById('departmentModalTitle');
-
-        if (departmentData) {
-            title.textContent = 'Edit Department';
-            this.populateDepartmentForm(departmentData);
-            this.currentEditId = departmentData.id;
-            this.currentEditType = 'department';
-        } else {
-            title.textContent = 'Add Department';
-            this.clearDepartmentForm();
-            this.currentEditId = null;
-            this.currentEditType = null;
-        }
-
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
-    }
-
-    openCourseModal(courseData = null) {
-        const modal = document.getElementById('courseModal');
-        const title = document.getElementById('courseModalTitle');
-
-        if (courseData) {
-            title.textContent = 'Edit Course';
-            this.populateCourseForm(courseData);
-            this.currentEditId = courseData.id;
-            this.currentEditType = 'course';
-        } else {
-            title.textContent = 'Add Course';
-            this.clearCourseForm();
-            this.currentEditId = null;
-            this.currentEditType = null;
-        }
-
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
-    }
-
-    // Form population and clearing
-    populateAdminForm(admin) {
-        document.getElementById('adminUserId').value = admin.userId || '';
-        document.getElementById('adminUsername').value = admin.username || '';
-        document.getElementById('adminFirstName').value = admin.firstName || '';
-        document.getElementById('adminLastName').value = admin.lastName || '';
-        document.getElementById('adminEmail').value = admin.email || '';
-        document.getElementById('adminPhone').value = admin.phone || '';
-        // Don't populate password for security
-        document.getElementById('adminPassword').value = '';
-    }
-
-    clearAdminForm() {
-        document.getElementById('adminForm').reset();
-    }
-
-    populateLecturerForm(lecturer) {
-        document.getElementById('lecturerUserId').value = lecturer.userId || '';
-        document.getElementById('lecturerUsername').value = lecturer.username || '';
-        document.getElementById('lecturerFirstName').value = lecturer.firstName || '';
-        document.getElementById('lecturerLastName').value = lecturer.lastName || '';
-        document.getElementById('lecturerEmail').value = lecturer.email || '';
-        document.getElementById('lecturerPhone').value = lecturer.phone || '';
-        if (lecturer.department) {
-            document.getElementById('lecturerDepartment').value = lecturer.department.id;
-        }
-        document.getElementById('lecturerPassword').value = '';
-    }
-
-    clearLecturerForm() {
-        document.getElementById('lecturerForm').reset();
-    }
-
-    populateDepartmentForm(department) {
-        document.getElementById('departmentName').value = department.name || '';
-        document.getElementById('departmentDescription').value = department.description || '';
-    }
-
-    clearDepartmentForm() {
-        document.getElementById('departmentForm').reset();
-    }
-
-    populateCourseForm(course) {
-        document.getElementById('courseName').value = course.courseName || '';
-        if (course.department) {
-            document.getElementById('courseDepartment').value = course.department.id;
-        }
-    }
-
-    clearCourseForm() {
-        document.getElementById('courseForm').reset();
-    }
-
-    // Save Functions
-    async saveAdmin() {
-        const adminData = {
-            userId: document.getElementById('adminUserId').value,
-            username: document.getElementById('adminUsername').value,
-            password: document.getElementById('adminPassword').value,
-            firstName: document.getElementById('adminFirstName').value,
-            lastName: document.getElementById('adminLastName').value,
-            email: document.getElementById('adminEmail').value,
-            phone: document.getElementById('adminPhone').value,
-            adminStatus: true
-        };
-
-        try {
-            let response;
-            if (this.currentEditId) {
-                response = await this.putData(`/admin/update/${this.currentEditId}`, adminData);
-            } else {
-                response = await this.postData('/admin/newAdmin', adminData);
-            }
-
-            if (response.ok) {
-                this.showAlert('Admin saved successfully', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
-                this.loadAdmins();
-            } else {
-                const error = await response.text();
-                this.showAlert(`Error: ${error}`, 'danger');
-            }
-        } catch (error) {
-            console.error('Error saving admin:', error);
-            this.showAlert('Error saving admin', 'danger');
-        }
-    }
-
-    async saveLecturer() {
-        const lecturerData = {
-            userId: document.getElementById('lecturerUserId').value,
-            username: document.getElementById('lecturerUsername').value,
-            password: document.getElementById('lecturerPassword').value,
-            firstName: document.getElementById('lecturerFirstName').value,
-            lastName: document.getElementById('lecturerLastName').value,
-            email: document.getElementById('lecturerEmail').value,
-            phone: document.getElementById('lecturerPhone').value
-        };
-
-        try {
-            const response = await this.postData('/admin/newLecturer', lecturerData);
-
-            if (response.ok) {
-                this.showAlert('Lecturer saved successfully', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('lecturerModal')).hide();
-                this.loadLecturers();
-            } else {
-                const error = await response.text();
-                this.showAlert(`Error: ${error}`, 'danger');
-            }
-        } catch (error) {
-            console.error('Error saving lecturer:', error);
-            this.showAlert('Error saving lecturer', 'danger');
-        }
-    }
-
-    async saveDepartment() {
-        const departmentData = {
-            name: document.getElementById('departmentName').value,
-            description: document.getElementById('departmentDescription').value
-        };
-
-        try {
-            let response;
-            if (this.currentEditId) {
-                response = await this.putData(`/departments/${this.currentEditId}`, departmentData);
-            } else {
-                response = await this.postData('/departments', departmentData);
-            }
-
-            if (response.ok) {
-                this.showAlert('Department saved successfully', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('departmentModal')).hide();
-                this.loadDepartments();
-            } else {
-                const error = await response.text();
-                this.showAlert(`Error: ${error}`, 'danger');
-            }
-        } catch (error) {
-            console.error('Error saving department:', error);
-            this.showAlert('Error saving department', 'danger');
-        }
-    }
-
-    async saveCourse() {
-        const courseData = {
-            courseName: document.getElementById('courseName').value,
-            department: {
-                id: parseInt(document.getElementById('courseDepartment').value)
-            }
-        };
-
-        try {
-            let response;
-            if (this.currentEditId) {
-                response = await this.putData(`/courses/${this.currentEditId}`, courseData);
-            } else {
-                response = await this.postData('/courses', courseData);
-            }
-
-            if (response.ok) {
-                this.showAlert('Course saved successfully', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('courseModal')).hide();
-                this.loadCourses();
-            } else {
-                const error = await response.text();
-                this.showAlert(`Error: ${error}`, 'danger');
-            }
-        } catch (error) {
-            console.error('Error saving course:', error);
-            this.showAlert('Error saving course', 'danger');
-        }
-    }
-
-    // Edit Functions
-    async editAdmin(username) {
-        try {
-            const adminData = await this.fetchJSON(`/admin/get/${username}`);
-            this.openAdminModal(adminData);
-        } catch (error) {
-            console.error('Error fetching admin data:', error);
-            this.showAlert('Error loading admin data', 'danger');
-        }
-    }
-
-    async editDepartment(id) {
-        try {
-            const departmentData = await this.fetchJSON(`/departments/${id}`);
-            this.openDepartmentModal(departmentData);
-        } catch (error) {
-            console.error('Error fetching department data:', error);
-            this.showAlert('Error loading department data', 'danger');
-        }
-    }
-
-    async editCourse(id) {
-        try {
-            const courseData = await this.fetchJSON(`/courses/${id}`);
-            this.openCourseModal(courseData);
-        } catch (error) {
-            console.error('Error fetching course data:', error);
-            this.showAlert('Error loading course data', 'danger');
-        }
-    }
-
-    // Delete Functions
-    async deleteAdmin(username) {
-        if (confirm('Are you sure you want to delete this admin?')) {
-            try {
-                const response = await this.deleteData(`/admin/deleteAdmin/${username}`);
-                if (response.ok) {
-                    this.showAlert('Admin deleted successfully', 'success');
-                    this.loadAdmins();
-                } else {
-                    const error = await response.text();
-                    this.showAlert(`Error: ${error}`, 'danger');
-                }
-            } catch (error) {
-                console.error('Error deleting admin:', error);
-                this.showAlert('Error deleting admin', 'danger');
-            }
-        }
-    }
-
-    async deleteLecturer(userId) {
-        if (confirm('Are you sure you want to delete this lecturer?')) {
-            try {
-                const response = await this.deleteData(`/admin/deleteLecturer/${userId}`);
-                if (response.ok) {
-                    this.showAlert('Lecturer deleted successfully', 'success');
-                    this.loadLecturers();
-                } else {
-                    const error = await response.text();
-                    this.showAlert(`Error: ${error}`, 'danger');
-                }
-            } catch (error) {
-                console.error('Error deleting lecturer:', error);
-                this.showAlert('Error deleting lecturer', 'danger');
-            }
-        }
-    }
-
-    async deleteDepartment(id) {
-        if (confirm('Are you sure you want to delete this department?')) {
-            try {
-                const response = await this.deleteData(`/departments/delete/${id}`);
-                if (response.ok) {
-                    this.showAlert('Department deleted successfully', 'success');
-                    this.loadDepartments();
-                } else {
-                    const error = await response.text();
-                    this.showAlert(`Error: ${error}`, 'danger');
-                }
-            } catch (error) {
-                console.error('Error deleting department:', error);
-                this.showAlert('Error deleting department', 'danger');
-            }
-        }
-    }
-
-    async deleteCourse(id) {
-        if (confirm('Are you sure you want to delete this course?')) {
-            try {
-                const response = await this.deleteData(`/courses/${id}`);
-                if (response.ok) {
-                    this.showAlert('Course deleted successfully', 'success');
-                    this.loadCourses();
-                } else {
-                    const error = await response.text();
-                    this.showAlert(`Error: ${error}`, 'danger');
-                }
-            } catch (error) {
-                console.error('Error deleting course:', error);
-                this.showAlert('Error deleting course', 'danger');
-            }
-        }
-    }
-
-    // Lecturer LIC Functions
-    async makeLIC(lecturerId) {
-        try {
-            const response = await fetch(`${this.baseURL}/admin/makeLic/${lecturerId}`);
-            if (response.ok) {
-                this.showAlert('Lecturer promoted to LIC successfully', 'success');
-                this.loadLecturers();
-            } else {
-                const error = await response.text();
-                this.showAlert(`Error: ${error}`, 'danger');
-            }
-        } catch (error) {
-            console.error('Error making lecturer LIC:', error);
-            this.showAlert('Error promoting lecturer', 'danger');
-        }
-    }
-
-    async removeLIC(lecturerId) {
-        try {
-            const response = await fetch(`${this.baseURL}/admin/removeLic/${lecturerId}`);
-            if (response.ok) {
-                this.showAlert('LIC status removed successfully', 'success');
-                this.loadLecturers();
-            } else {
-                const error = await response.text();
-                this.showAlert(`Error: ${error}`, 'danger');
-            }
-        } catch (error) {
-            console.error('Error removing LIC status:', error);
-            this.showAlert('Error removing LIC status', 'danger');
-        }
-    }
-
-    // Change Password Function
-    async changePassword() {
-        const username = document.getElementById('currentUsername').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-
-        if (newPassword !== confirmPassword) {
-            this.showAlert('Passwords do not match', 'danger');
             return;
         }
 
-        const passwordChangeData = {
-            userName: username,
-            newPassword: newPassword
-        };
+        departments.forEach(department => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong class="text-primary">${this.escapeHtml(department.departmentId)}</strong></td>
+                <td><div class="fw-medium">${this.escapeHtml(department.name)}</div></td>
+                <td><div class="text-muted" style="max-width: 300px;">${department.description ? this.escapeHtml(department.description) : '<em>No description</em>'}</div></td>
+                <td>
+                    <button class="btn btn-link p-0 text-decoration-none" onclick="dashboard.viewDepartmentStudents('${department.departmentId}')">
+                        <span class="badge bg-info">
+                            <i class="bi bi-people me-1"></i>
+                            <span id="studentCount_${department.departmentId}">Loading...</span>
+                        </span>
+                    </button>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-info" onclick="dashboard.viewDepartmentStudents('${department.departmentId}')" title="View Students">
+                            <i class="bi bi-people"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="dashboard.editDepartment('${department.departmentId}')" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="dashboard.confirmDeleteDepartment('${department.departmentId}', '${this.escapeHtml(department.name)}')" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
 
+            // Load student count for each department
+            this.loadDepartmentStudentCount(department.departmentId);
+        });
+    }
+
+    async loadDepartmentStudentCount(departmentId) {
         try {
-            const response = await this.putData('/admin/changePassword', passwordChangeData);
+            const response = await fetch(`${this.baseURL}/departments/${departmentId}/students`);
             if (response.ok) {
-                this.showAlert('Password changed successfully', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
-                document.getElementById('changePasswordForm').reset();
-            } else {
-                const error = await response.text();
-                this.showAlert(`Error: ${error}`, 'danger');
+                const students = await response.json();
+                const countElement = document.getElementById(`studentCount_${departmentId}`);
+                if (countElement) {
+                    countElement.textContent = students.length;
+                }
             }
         } catch (error) {
-            console.error('Error changing password:', error);
-            this.showAlert('Error changing password', 'danger');
+            console.error(`Error loading student count for ${departmentId}:`, error);
+            const countElement = document.getElementById(`studentCount_${departmentId}`);
+            if (countElement) {
+                countElement.textContent = '0';
+            }
         }
     }
 
-    // Utility Functions
-    showAlert(message, type) {
-        // Remove existing alerts
-        const existingAlerts = document.querySelectorAll('.alert');
-        existingAlerts.forEach(alert => alert.remove());
+    async updateDepartmentStatistics(departments) {
+        const totalDepartments = departments.length;
+        document.getElementById('totalDepartmentCount').textContent = totalDepartments;
 
-        // Create new alert
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-        alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
+        // Calculate total students across all departments
+        try {
+            const studentCounts = await Promise.all(departments.map(async dept => {
+                try {
+                    const response = await fetch(`${this.baseURL}/departments/${dept.departmentId}/students`);
+                    if (response.ok) {
+                        const students = await response.json();
+                        return students.length;
+                    }
+                } catch (error) {
+                    return 0;
+                }
+                return 0;
+            }));
 
-        // Insert at the top of main content
-        const mainContent = document.querySelector('main');
-        mainContent.insertBefore(alertDiv, mainContent.firstChild);
-
-        // Auto dismiss after 5 seconds
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 5000);
+            const totalStudents = studentCounts.reduce((sum, count) => sum + count, 0);
+            document.getElementById('totalDepartmentStudents').textContent = totalStudents;
+            document.getElementById('avgStudentsPerDept').textContent =
+                totalDepartments > 0 ? Math.round(totalStudents / totalDepartments) : 0;
+        } catch (error) {
+            console.error('Error calculating department statistics:', error);
+        }
     }
 
-    viewStudent(userId) {
-        // Placeholder for student view functionality
-        this.showAlert(`Viewing student: ${userId}`, 'info');
+    setupDepartmentSearch() {
+        const searchInput = document.getElementById('departmentSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterDepartments(e.target.value);
+            });
+        }
+    }
+
+    filterDepartments(searchTerm) {
+        if (!this.departments) return;
+
+        const filtered = this.departments.filter(dept =>
+            dept.departmentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (dept.description && dept.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        this.renderDepartmentsTable(filtered);
+    }
+
+    openDepartmentModal() {
+        this.currentEditId = null;
+        this.currentEditType = 'department';
+        document.getElementById('departmentModalTitle').textContent = 'Add New Department';
+        document.getElementById('departmentForm').reset();
+
+        // Enable departmentId field for new departments
+        const deptIdField = document.getElementById('departmentId');
+        if (deptIdField) {
+            deptIdField.disabled = false;
+        }
+    }
+
+    async editDepartment(departmentId) {
+        const department = this.departments?.find(d => d.departmentId === departmentId);
+        if (!department) return;
+
+        this.currentEditId = departmentId;
+        this.currentEditType = 'department';
+        document.getElementById('departmentModalTitle').textContent = 'Edit Department';
+
+        // Fill form with current data
+        document.getElementById('departmentName').value = department.name;
+        document.getElementById('departmentDescription').value = department.description || '';
+
+        // Disable departmentId field during edit if it exists
+        const deptIdField = document.getElementById('departmentId');
+        if (deptIdField) {
+            deptIdField.value = department.departmentId;
+            deptIdField.disabled = true;
+        }
+
+        // Show modal
+        new bootstrap.Modal(document.getElementById('departmentModal')).show();
+    }
+
+    confirmDeleteDepartment(departmentId, departmentName) {
+        if (confirm(`Are you sure you want to delete the department "${departmentName}"?\n\nThis action cannot be undone and will affect all associated students and courses.`)) {
+            this.deleteDepartment(departmentId);
+        }
+    }
+
+    async deleteDepartment(departmentId) {
+        try {
+            const response = await this.deleteData(`/departments/delete/${departmentId}`);
+            if (response.ok) {
+                this.showAlert('Department deleted successfully!', 'success');
+                this.loadDepartments();
+            } else {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || 'Failed to delete department');
+            }
+        } catch (error) {
+            console.error('Error deleting department:', error);
+            this.showAlert('Failed to delete department: ' + error.message, 'danger');
+        }
+    }
+
+    async viewDepartmentStudents(departmentId) {
+        try {
+            const department = this.departments?.find(d => d.departmentId === departmentId);
+            const response = await fetch(`${this.baseURL}/departments/${departmentId}/students`);
+
+            if (!response.ok) {
+                throw new Error('Failed to load students');
+            }
+
+            const students = await response.json();
+
+            // Create a simple modal to show students
+            const modalHtml = `
+                <div class="modal fade" id="studentsViewModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-people me-2"></i>
+                                    Students in ${department ? department.name : departmentId}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${students.length === 0 ? `
+                                    <div class="text-center py-4">
+                                        <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                                        <h5 class="mt-3 text-muted">No Students Found</h5>
+                                        <p class="text-muted">This department doesn't have any students yet.</p>
+                                    </div>
+                                ` : `
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Student ID</th>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Contact</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${students.map(student => `
+                                                    <tr>
+                                                        <td><strong class="text-primary">${this.escapeHtml(student.studentId || 'N/A')}</strong></td>
+                                                        <td>${this.escapeHtml((student.firstName || '') + ' ' + (student.lastName || '')).trim() || 'N/A'}</td>
+                                                        <td>${this.escapeHtml(student.email || 'N/A')}</td>
+                                                        <td>${this.escapeHtml(student.phone || 'N/A')}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remove existing modal if any
+            const existingModal = document.getElementById('studentsViewModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Add new modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Show modal
+            new bootstrap.Modal(document.getElementById('studentsViewModal')).show();
+
+        } catch (error) {
+            console.error('Error loading students:', error);
+            this.showAlert('Failed to load students for this department.', 'danger');
+        }
+    }
+
+    exportDepartments() {
+        if (!this.departments || this.departments.length === 0) {
+            this.showAlert('No data to export', 'warning');
+            return;
+        }
+
+        const csvContent = this.convertDepartmentsToCSV(this.departments);
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `departments_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        this.showAlert('Data exported successfully!', 'success');
+    }
+
+    convertDepartmentsToCSV(data) {
+        const headers = ['Department ID', 'Department Name', 'Description'];
+        const rows = data.map(dept => [
+            dept.departmentId,
+            dept.name,
+            dept.description || ''
+        ]);
+
+        const csvContent = [headers, ...rows]
+            .map(row => row.map(field => `"${field}"`).join(','))
+            .join('\n');
+
+        return csvContent;
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }
 
