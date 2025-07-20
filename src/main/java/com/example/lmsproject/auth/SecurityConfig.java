@@ -27,7 +27,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().permitAll()
                 )
-                .csrf(csrf -> csrf.disable());;
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
 

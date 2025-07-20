@@ -8,11 +8,15 @@ import com.example.lmsproject.repository.AdminRepo;
 import com.example.lmsproject.repository.DepartmentRepository;
 import com.example.lmsproject.repository.LecturerRepo;
 import com.example.lmsproject.utils.Utils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.json.JSONArray;
 
 @Service
 public class AdminService implements UserService<Admin> {
@@ -100,6 +104,66 @@ public class AdminService implements UserService<Admin> {
         }
 
         return false;
+    }
+
+    public JSONArray getAllAdmins() {
+
+        List<Admin> allAdmins = adminRepo.findByRole("ADMIN");
+
+        JSONArray jsonArray = new JSONArray();
+
+        for(Admin admin : allAdmins){
+
+            JSONObject adminJson = new JSONObject();
+
+            adminJson.put("userId", admin.getUserId());
+            adminJson.put("username", admin.getUsername());
+            adminJson.put("firstName", admin.getFirstName());
+            adminJson.put("lastName", admin.getLastName());
+            adminJson.put("email", admin.getEmail());
+            adminJson.put("phone", admin.getPhone());
+            adminJson.put("role", admin.getRole());
+            adminJson.put("adminStatus", admin.isAdminStatus());
+
+            jsonArray.put(adminJson);
+        }
+
+        return jsonArray;
+
+    }
+
+    public JSONArray getAllDepartments() {
+
+        List<Department> allDepartments = departmentRepository.findAll();
+
+        JSONArray jsonArray = new JSONArray();
+
+        for(Department department : allDepartments){
+
+            JSONObject departmentJson = new JSONObject();
+
+            departmentJson.put("id", department.getId());
+            departmentJson.put("name", department.getName());
+            departmentJson.put("description", department.getDescription());
+
+            jsonArray.put(departmentJson);
+        }
+
+        return jsonArray;
+
+    }
+
+
+    public JSONArray getAllCourses() {
+
+
+        return new JSONArray();
+    }
+
+    public JSONArray getAllStudents() {
+
+
+        return new JSONArray();
     }
 
 }

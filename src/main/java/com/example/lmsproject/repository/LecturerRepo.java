@@ -10,8 +10,10 @@ public interface LecturerRepo extends JpaRepository<Lecturer, String> {
 
     Lecturer findByLecturerID(String lecturerID);
     Lecturer findByUsername(String username);
+    //List<Lecturer> findByDepartment(String department);
+    List<Lecturer> findByRole(String role);
 
-    @Query("SELECT u.userId FROM User u ORDER BY u.userId DESC")
+    @Query("SELECT u.userId FROM User u ORDER BY u.userId DESC") // u.id
     List<String> findAllUserIdsOrderByIdDesc();
 
     @Query("SELECT lecturerID FROM Lecturer ORDER BY lecturerID DESC")
