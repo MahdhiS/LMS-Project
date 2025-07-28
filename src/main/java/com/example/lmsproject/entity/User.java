@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "user")
-abstract class User {
+public class User {
 
     @Id
     @Getter

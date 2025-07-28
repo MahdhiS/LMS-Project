@@ -1,5 +1,6 @@
 package com.example.lmsproject.auth;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,19 +20,35 @@ import static org.springframework.security.web.header.writers.ClearSiteDataHeade
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private CustomLoginSuccessHandler successHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/admin/**").permitAll()
+                        .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers("/api/lecturer/**").hasRole("LECTURER")
                         .requestMatchers("/api/student/**").hasRole("STUDENT")
                         .requestMatchers("/student/**").hasAnyRole("STUDENT", "LECTURER", "ADMIN")
                         .requestMatchers("/lecturer/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .csrf(csrf -> csrf.disable());
+                .csrf(csrf -> csrf.disable())
+
+
+                .formLogin(formLogin -> formLogin
+                        .loginPage("/login")
+                        .successHandler(successHandler)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .addLogoutHandler(new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(COOKIES)))
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login")
+                        .permitAll()
+                );
 
         return http.build();
 
@@ -40,6 +57,13 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authManager(
+            AuthenticationConfiguration config
+    ) throws Exception {
+        return config.getAuthenticationManager();
     }
 
 
