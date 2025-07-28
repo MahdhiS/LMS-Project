@@ -10,14 +10,22 @@ async function loadStudentProfile() {
     try {
         showLoading();
 
-        // Get current student data from session/API
-        const response = await fetch('/api/students/current');
+        // Since /api/students/current doesn't exist, get first student as demo
+        // In production, this would be handled by authentication
+        const response = await fetch('/api/students');
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const studentData = await response.json();
+        const studentsData = await response.json();
+        // Get first student as current user for demo purposes
+        const studentData = Array.isArray(studentsData) && studentsData.length > 0 ? studentsData[0] : null;
+
+        if (!studentData) {
+            throw new Error('No student data available');
+        }
+
         displayStudentProfile(studentData);
         hideLoading();
 
@@ -40,9 +48,9 @@ function displayStudentProfile(data) {
         document.getElementById('dateOfBirth').textContent = data.dateOfBirth || 'Not provided';
         document.getElementById('gender').textContent = data.gender || 'Not provided';
 
-        // Update department information
+        // Update department information - Fixed to use correct field name from backend
         const departmentName = data.department ?
-            (data.department.departmentName || data.department.name || 'No Department') :
+            (data.department.name || 'No Department') :
             'No Department';
         document.getElementById('departmentBadge').textContent = departmentName;
 

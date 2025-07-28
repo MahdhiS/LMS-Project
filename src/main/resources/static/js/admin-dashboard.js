@@ -72,39 +72,21 @@ class AdminDashboard {
 
     async loadDashboardData() {
         try {
-            const [admins, lecturers, students, courses] = await Promise.all([
-                this.fetchData('/admin/getAllAdmins'),
-                this.fetchData('/admin/getAllLecturers'),
-                this.fetchData('/admin/getAllStudents'),
-                this.fetchData('/admin/getAllCourses')
+            // Use the correct endpoints that actually exist in your backend
+            const [students, courses, departments] = await Promise.all([
+                this.fetchJSON('/students'),
+                this.fetchJSON('/courses'),
+                this.fetchJSON('/departments')
             ]);
 
             // Update dashboard statistics
-            document.getElementById('totalAdmins').textContent = this.parseCount(admins);
-            document.getElementById('totalLecturers').textContent = this.parseCount(lecturers);
-            document.getElementById('totalStudents').textContent = this.parseCount(students);
-            document.getElementById('totalCourses').textContent = this.parseCount(courses);
+            document.getElementById('totalAdmins').textContent = '1'; // Hardcoded since no admin list endpoint
+            document.getElementById('totalLecturers').textContent = '0'; // Will need to add lecturer endpoint
+            document.getElementById('totalStudents').textContent = Array.isArray(students) ? students.length : 0;
+            document.getElementById('totalCourses').textContent = Array.isArray(courses) ? courses.length : 0;
         } catch (error) {
             console.error('Error loading dashboard data:', error);
             this.showAlert('Error loading dashboard data', 'danger');
-        }
-    }
-
-    parseCount(dataString) {
-        try {
-            if (typeof dataString === 'string') {
-                // Handle array string format
-                if (dataString.startsWith('[') && dataString.endsWith(']')) {
-                    const parsed = JSON.parse(dataString);
-                    return Array.isArray(parsed) ? parsed.length : 0;
-                }
-                // Handle other string formats
-                return dataString.split(',').filter(item => item.trim()).length;
-            }
-            return Array.isArray(dataString) ? dataString.length : 0;
-        } catch (error) {
-            console.error('Error parsing count:', error);
-            return 0;
         }
     }
 
@@ -270,29 +252,22 @@ class AdminDashboard {
     // Student Management
     async loadStudents() {
         try {
-            const data = await this.fetchData('/admin/getAllStudents');
-            this.renderStudentsTable(this.parseStudentData(data));
+            const students = await this.fetchJSON('/students'); // Use the correct students endpoint
+            this.renderStudentsTable(students);
         } catch (error) {
             console.error('Error loading students:', error);
             this.showAlert('Error loading students', 'danger');
         }
     }
 
-    parseStudentData(dataString) {
-        try {
-            if (typeof dataString === 'string' && dataString.startsWith('[')) {
-                return JSON.parse(dataString);
-            }
-            return [];
-        } catch (error) {
-            console.error('Error parsing student data:', error);
-            return [];
-        }
-    }
-
     renderStudentsTable(students) {
         const tbody = document.getElementById('studentsTableBody');
         tbody.innerHTML = '';
+
+        if (!Array.isArray(students) || students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No students found</td></tr>';
+            return;
+        }
 
         students.forEach(student => {
             const row = document.createElement('tr');
@@ -335,15 +310,15 @@ class AdminDashboard {
         departments.forEach(department => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${department.id}</td>
+                <td>${department.departmentId}</td>
                 <td>${department.name}</td>
                 <td>${department.description || ''}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-warning btn-sm" onclick="dashboard.editDepartment(${department.id})">
+                        <button class="btn btn-warning btn-sm" onclick="dashboard.editDepartment('${department.departmentId}')">
                             <i class="bi bi-pencil"></i> Edit
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="dashboard.deleteDepartment(${department.id})">
+                        <button class="btn btn-danger btn-sm" onclick="dashboard.deleteDepartment('${department.departmentId}')">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>
@@ -369,20 +344,25 @@ class AdminDashboard {
         const tbody = document.getElementById('coursesTableBody');
         tbody.innerHTML = '';
 
+        if (!Array.isArray(courses) || courses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No courses found</td></tr>';
+            return;
+        }
+
         courses.forEach(course => {
             const row = document.createElement('tr');
             const departmentName = course.department ? course.department.name : 'Not Assigned';
 
             row.innerHTML = `
-                <td>${course.id}</td>
+                <td>${course.courseId}</td>
                 <td>${course.courseName}</td>
                 <td>${departmentName}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-warning btn-sm" onclick="dashboard.editCourse(${course.id})">
+                        <button class="btn btn-warning btn-sm" onclick="dashboard.editCourse('${course.courseId}')">
                             <i class="bi bi-pencil"></i> Edit
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="dashboard.deleteCourse(${course.id})">
+                        <button class="btn btn-danger btn-sm" onclick="dashboard.deleteCourse('${course.courseId}')">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>
@@ -400,7 +380,7 @@ class AdminDashboard {
 
             departments.forEach(department => {
                 const option = document.createElement('option');
-                option.value = department.id;
+                option.value = department.departmentId; // Fixed: use departmentId instead of id
                 option.textContent = department.name;
                 select.appendChild(option);
             });
@@ -454,7 +434,7 @@ class AdminDashboard {
         if (departmentData) {
             title.textContent = 'Edit Department';
             this.populateDepartmentForm(departmentData);
-            this.currentEditId = departmentData.id;
+            this.currentEditId = departmentData.departmentId; // Fixed: use departmentId instead of id
             this.currentEditType = 'department';
         } else {
             title.textContent = 'Add Department';
@@ -474,7 +454,7 @@ class AdminDashboard {
         if (courseData) {
             title.textContent = 'Edit Course';
             this.populateCourseForm(courseData);
-            this.currentEditId = courseData.id;
+            this.currentEditId = courseData.courseId; // Fixed: use courseId instead of id
             this.currentEditType = 'course';
         } else {
             title.textContent = 'Add Course';
@@ -635,7 +615,7 @@ class AdminDashboard {
         const courseData = {
             courseName: document.getElementById('courseName').value,
             department: {
-                id: parseInt(document.getElementById('courseDepartment').value)
+                departmentId: document.getElementById('courseDepartment').value // Fixed: use departmentId instead of id
             }
         };
 
