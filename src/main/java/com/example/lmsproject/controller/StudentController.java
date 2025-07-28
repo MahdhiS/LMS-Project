@@ -82,7 +82,7 @@ public class StudentController {
     @PostMapping("/{studentId}/enroll/{courseId}")
     public Course enrollInCourse(
             @PathVariable String studentId,
-            @PathVariable Long courseId) {
+            @PathVariable String courseId) {
 
         return courseService.enrollStudentInCourse(studentId, courseId);
 
@@ -92,7 +92,7 @@ public class StudentController {
     @DeleteMapping("/{studentId}/drop/{courseId}")
     public Course dropCourse(
             @PathVariable String studentId,
-            @PathVariable Long courseId) {
+            @PathVariable String courseId) {
 
        return courseService.dropStudentFromCourse(studentId, courseId);
 
