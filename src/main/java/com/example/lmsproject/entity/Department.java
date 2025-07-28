@@ -46,7 +46,7 @@ public class Department {
         this.students = students;
     }
 
-    public String getDepartmentId() {
+    public String getId() {
         return departmentId;
     }
 
