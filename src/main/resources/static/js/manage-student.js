@@ -21,7 +21,7 @@ async function loadStudentProfile() {
         const studentsData = await response.json();
         // Get first student as current user for demo purposes
         const studentData = Array.isArray(studentsData) && studentsData.length > 0 ? studentsData[0] : null;
-
+        
         if (!studentData) {
             throw new Error('No student data available');
         }
