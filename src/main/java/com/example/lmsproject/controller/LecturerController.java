@@ -28,7 +28,7 @@ public class LecturerController {
 
     // OP
     @GetMapping("/get-lecturer-info")
-    public Map<String, String> get(){
+    public Map<String, String> get() {
 
         String userName = AuthUtils.getUserName();
 

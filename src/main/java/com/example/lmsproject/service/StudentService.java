@@ -3,6 +3,7 @@ package com.example.lmsproject.service;
 
 import com.example.lmsproject.auth.PWEncoder;
 import com.example.lmsproject.entity.Department;
+import com.example.lmsproject.entity.Lecturer;
 import com.example.lmsproject.entity.Student;
 import com.example.lmsproject.repository.DepartmentRepository;
 import com.example.lmsproject.repository.StudentRepository;
@@ -10,7 +11,9 @@ import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class StudentService {
@@ -60,6 +63,26 @@ public class StudentService {
     public List<Student> getAllStudents(){
         return studentRepository.findAll();
     }
+
+    public Student findByUsername(String username) {
+        return studentRepository.findByUsername(username);
+    }
+
+
+    public Map<String, String> getByUsername(String studentId){
+        Student student = studentRepository.findByUsername(studentId);
+
+        Map<String, String> studentMap = new HashMap<>();
+        studentMap.put("studentID", student.getStudentId());
+        studentMap.put("email", student.getEmail());
+        studentMap.put("phone", student.getPhone());
+        studentMap.put("firstName", student.getFirstName());
+        studentMap.put("lastName", student.getLastName());
+        studentMap.put("courses", student.getCourses().toString());
+
+        return studentMap;
+    }
+
 
     public Student updateDetails(String id, Student updatedStudent) {
         Student student = studentRepository.findById(id).orElse(null);

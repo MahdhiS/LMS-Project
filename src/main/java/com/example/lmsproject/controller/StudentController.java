@@ -1,5 +1,6 @@
 package com.example.lmsproject.controller;
 
+import com.example.lmsproject.auth.AuthUtils;
 import com.example.lmsproject.entity.Course;
 import com.example.lmsproject.entity.Student;
 import com.example.lmsproject.service.CourseService;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/students")
@@ -41,6 +43,11 @@ public class StudentController {
         return studentService.getStudentById(id);
     }
 
+    @GetMapping("/get-student-info")
+    public Student getStudentInfo() {
+        String userName = AuthUtils.getUserName();
+        return studentService.findByUsername(userName);
+    }
 
     //update
     @PutMapping("/{id}")
