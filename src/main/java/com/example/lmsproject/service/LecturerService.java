@@ -139,7 +139,7 @@ public class LecturerService implements UserService<Lecturer> {
 
             JSONObject lecturerJson = new JSONObject();
 
-            lecturerJson.put("userId", lecturer.getUserId());
+            lecturerJson.put("userId", lecturer.getLecturerID());
             lecturerJson.put("username", lecturer.getUsername());
             lecturerJson.put("firstName", lecturer.getFirstName());
             lecturerJson.put("lastName", lecturer.getLastName());
