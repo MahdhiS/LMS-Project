@@ -67,21 +67,22 @@ class AdminDashboard {
             case 'courses':
                 this.loadCourses();
                 break;
+            case 'enrollments':
+                this.loadEnrollments();
+                break;
         }
     }
 
     async loadDashboardData() {
         try {
-            // Use the correct endpoints that actually exist in your backend
             const [students, courses, departments] = await Promise.all([
                 this.fetchJSON('/students'),
                 this.fetchJSON('/courses'),
                 this.fetchJSON('/departments')
             ]);
 
-            // Update dashboard statistics
-            document.getElementById('totalAdmins').textContent = '1'; // Hardcoded since no admin list endpoint
-            document.getElementById('totalLecturers').textContent = '0'; // Will need to add lecturer endpoint
+            document.getElementById('totalAdmins').textContent = '1';
+            document.getElementById('totalLecturers').textContent = '0';
             document.getElementById('totalStudents').textContent = Array.isArray(students) ? students.length : 0;
             document.getElementById('totalCourses').textContent = Array.isArray(courses) ? courses.length : 0;
         } catch (error) {
@@ -252,8 +253,9 @@ class AdminDashboard {
     // Student Management
     async loadStudents() {
         try {
-            const students = await this.fetchJSON('/students'); // Use the correct students endpoint
+            const students = await this.fetchJSON('/students');
             this.renderStudentsTable(students);
+            await this.loadDepartmentOptions('studentDepartment');
         } catch (error) {
             console.error('Error loading students:', error);
             this.showAlert('Error loading students', 'danger');
@@ -282,8 +284,11 @@ class AdminDashboard {
                 <td>${departmentName}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-info btn-sm" onclick="dashboard.viewStudent('${student.userId}')">
-                            <i class="bi bi-eye"></i> View
+                        <button class="btn btn-warning btn-sm" onclick="dashboard.editStudent('${student.userId}')">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="dashboard.deleteStudent('${student.userId}')">
+                            <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>
                 </td>
@@ -372,6 +377,85 @@ class AdminDashboard {
         });
     }
 
+    // Enrollment Management
+    async loadEnrollments() {
+        try {
+            const [students, courses] = await Promise.all([
+                this.fetchJSON('/students'),
+                this.fetchJSON('/courses')
+            ]);
+
+            const enrollmentPromises = students.map(student =>
+                this.fetchJSON(`/students/${student.userId}/courses`)
+                    .then(studentCourses =>
+                        studentCourses.map(course => ({
+                            enrollmentId: `${student.userId}-${course.courseId}`,
+                            student: student,
+                            course: course,
+                            enrollmentDate: new Date().toISOString().split('T')[0],
+                            status: 'ACTIVE'
+                        }))
+                    )
+                    .catch(() => [])
+            );
+
+            const enrollmentArrays = await Promise.all(enrollmentPromises);
+            const enrollments = enrollmentArrays.flat();
+
+            this.renderEnrollmentsTable(enrollments);
+            await this.loadStudentOptions('enrollmentStudent');
+            await this.loadCourseOptions('enrollmentCourse');
+        } catch (error) {
+            console.error('Error loading enrollments:', error);
+            this.showAlert('Error loading enrollments', 'danger');
+        }
+    }
+
+    renderEnrollmentsTable(enrollments) {
+        const tbody = document.getElementById('enrollmentsTableBody');
+        tbody.innerHTML = '';
+
+        if (!Array.isArray(enrollments) || enrollments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">No enrollments found</td></tr>';
+            return;
+        }
+
+        enrollments.forEach(enrollment => {
+            const row = document.createElement('tr');
+            const enrollmentDate = enrollment.enrollmentDate ? new Date(enrollment.enrollmentDate).toLocaleDateString() : 'N/A';
+            const statusBadgeClass = this.getStatusBadgeClass(enrollment.status);
+
+            row.innerHTML = `
+                <td>${enrollment.enrollmentId || ''}</td>
+                <td>${enrollment.course ? enrollment.course.courseId : 'N/A'}</td>
+                <td>${enrollment.student ? enrollment.student.userId : 'N/A'}</td>
+                <td>${enrollmentDate}</td>
+                <td><span class="badge ${statusBadgeClass}">${enrollment.status || 'ACTIVE'}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-info btn-sm" onclick="dashboard.viewEnrollmentDetails('${enrollment.student.userId}', '${enrollment.course.courseId}')">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="dashboard.deleteEnrollment('${enrollment.student.userId}', '${enrollment.course.courseId}')">
+                            <i class="bi bi-trash"></i> Drop
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    getStatusBadgeClass(status) {
+        switch(status?.toUpperCase()) {
+            case 'ACTIVE': return 'bg-success';
+            case 'INACTIVE': return 'bg-secondary';
+            case 'COMPLETED': return 'bg-primary';
+            case 'DROPPED': return 'bg-danger';
+            default: return 'bg-success';
+        }
+    }
+
     async loadDepartmentOptions(selectId) {
         try {
             const departments = await this.fetchJSON('/departments');
@@ -380,12 +464,46 @@ class AdminDashboard {
 
             departments.forEach(department => {
                 const option = document.createElement('option');
-                option.value = department.departmentId; // Fixed: use departmentId instead of id
+                option.value = department.departmentId;
                 option.textContent = department.name;
                 select.appendChild(option);
             });
         } catch (error) {
             console.error('Error loading department options:', error);
+        }
+    }
+
+    async loadStudentOptions(selectId) {
+        try {
+            const students = await this.fetchJSON('/students');
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select Student</option>';
+
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.userId;
+                option.textContent = `${student.firstName} ${student.lastName} (${student.userId})`;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading student options:', error);
+        }
+    }
+
+    async loadCourseOptions(selectId) {
+        try {
+            const courses = await this.fetchJSON('/courses');
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select Course</option>';
+
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.courseId;
+                option.textContent = `${course.courseName} (${course.courseId})`;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading course options:', error);
         }
     }
 
@@ -434,7 +552,7 @@ class AdminDashboard {
         if (departmentData) {
             title.textContent = 'Edit Department';
             this.populateDepartmentForm(departmentData);
-            this.currentEditId = departmentData.departmentId; // Fixed: use departmentId instead of id
+            this.currentEditId = departmentData.departmentId;
             this.currentEditType = 'department';
         } else {
             title.textContent = 'Add Department';
@@ -454,7 +572,7 @@ class AdminDashboard {
         if (courseData) {
             title.textContent = 'Edit Course';
             this.populateCourseForm(courseData);
-            this.currentEditId = courseData.courseId; // Fixed: use courseId instead of id
+            this.currentEditId = courseData.courseId;
             this.currentEditType = 'course';
         } else {
             title.textContent = 'Add Course';
@@ -462,6 +580,39 @@ class AdminDashboard {
             this.currentEditId = null;
             this.currentEditType = null;
         }
+
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
+    }
+
+    openStudentModal(studentData = null) {
+        const modal = document.getElementById('studentModal');
+        const title = document.getElementById('studentModalTitle');
+
+        if (studentData) {
+            title.textContent = 'Edit Student';
+            this.populateStudentForm(studentData);
+            this.currentEditId = studentData.userId;
+            this.currentEditType = 'student';
+        } else {
+            title.textContent = 'Add Student';
+            this.clearStudentForm();
+            this.currentEditId = null;
+            this.currentEditType = null;
+        }
+
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
+    }
+
+    openEnrollmentModal(enrollmentData = null) {
+        const modal = document.getElementById('enrollmentModal');
+        const title = document.getElementById('enrollmentModalTitle');
+
+        title.textContent = 'Add New Enrollment';
+        this.clearEnrollmentForm();
+        this.currentEditId = null;
+        this.currentEditType = null;
 
         const bootstrapModal = new bootstrap.Modal(modal);
         bootstrapModal.show();
@@ -475,7 +626,6 @@ class AdminDashboard {
         document.getElementById('adminLastName').value = admin.lastName || '';
         document.getElementById('adminEmail').value = admin.email || '';
         document.getElementById('adminPhone').value = admin.phone || '';
-        // Don't populate password for security
         document.getElementById('adminPassword').value = '';
     }
 
@@ -491,7 +641,7 @@ class AdminDashboard {
         document.getElementById('lecturerEmail').value = lecturer.email || '';
         document.getElementById('lecturerPhone').value = lecturer.phone || '';
         if (lecturer.department) {
-            document.getElementById('lecturerDepartment').value = lecturer.department.id;
+            document.getElementById('lecturerDepartment').value = lecturer.department.departmentId;
         }
         document.getElementById('lecturerPassword').value = '';
     }
@@ -512,12 +662,33 @@ class AdminDashboard {
     populateCourseForm(course) {
         document.getElementById('courseName').value = course.courseName || '';
         if (course.department) {
-            document.getElementById('courseDepartment').value = course.department.id;
+            document.getElementById('courseDepartment').value = course.department.departmentId;
         }
     }
 
     clearCourseForm() {
         document.getElementById('courseForm').reset();
+    }
+
+    populateStudentForm(student) {
+        document.getElementById('studentUserId').value = student.userId || '';
+        document.getElementById('studentUsername').value = student.username || '';
+        document.getElementById('studentFirstName').value = student.firstName || '';
+        document.getElementById('studentLastName').value = student.lastName || '';
+        document.getElementById('studentEmail').value = student.email || '';
+        document.getElementById('studentPhone').value = student.phone || '';
+        if (student.department) {
+            document.getElementById('studentDepartment').value = student.department.departmentId;
+        }
+        document.getElementById('studentPassword').value = '';
+    }
+
+    clearStudentForm() {
+        document.getElementById('studentForm').reset();
+    }
+
+    clearEnrollmentForm() {
+        document.getElementById('enrollmentForm').reset();
     }
 
     // Save Functions
@@ -615,7 +786,7 @@ class AdminDashboard {
         const courseData = {
             courseName: document.getElementById('courseName').value,
             department: {
-                departmentId: document.getElementById('courseDepartment').value // Fixed: use departmentId instead of id
+                departmentId: document.getElementById('courseDepartment').value
             }
         };
 
@@ -641,6 +812,68 @@ class AdminDashboard {
         }
     }
 
+    async saveStudent() {
+        const studentData = {
+            userId: document.getElementById('studentUserId').value,
+            username: document.getElementById('studentUsername').value,
+            password: document.getElementById('studentPassword').value,
+            firstName: document.getElementById('studentFirstName').value,
+            lastName: document.getElementById('studentLastName').value,
+            email: document.getElementById('studentEmail').value,
+            phone: document.getElementById('studentPhone').value,
+            department: {
+                departmentId: document.getElementById('studentDepartment').value
+            }
+        };
+
+        try {
+            let response;
+            if (this.currentEditId) {
+                response = await this.putData(`/students/${this.currentEditId}`, studentData);
+            } else {
+                response = await this.postData('/students', studentData);
+            }
+
+            if (response.ok) {
+                this.showAlert('Student saved successfully', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('studentModal')).hide();
+                this.loadStudents();
+            } else {
+                const error = await response.text();
+                this.showAlert(`Error: ${error}`, 'danger');
+            }
+        } catch (error) {
+            console.error('Error saving student:', error);
+            this.showAlert('Error saving student', 'danger');
+        }
+    }
+
+    async saveEnrollment() {
+        const studentId = document.getElementById('enrollmentStudent').value;
+        const courseId = document.getElementById('enrollmentCourse').value;
+
+        if (!studentId || !courseId) {
+            this.showAlert('Please select both student and course', 'warning');
+            return;
+        }
+
+        try {
+            const response = await this.postData(`/students/${studentId}/enroll/${courseId}`, {});
+
+            if (response.ok) {
+                this.showAlert('Student enrolled successfully', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('enrollmentModal')).hide();
+                this.loadEnrollments();
+            } else {
+                const error = await response.text();
+                this.showAlert(`Enrollment failed: ${error}`, 'danger');
+            }
+        } catch (error) {
+            console.error('Error saving enrollment:', error);
+            this.showAlert('Error enrolling student', 'danger');
+        }
+    }
+
     // Edit Functions
     async editAdmin(username) {
         try {
@@ -649,6 +882,16 @@ class AdminDashboard {
         } catch (error) {
             console.error('Error fetching admin data:', error);
             this.showAlert('Error loading admin data', 'danger');
+        }
+    }
+
+    async editStudent(userId) {
+        try {
+            const studentData = await this.fetchJSON(`/students/${userId}`);
+            this.openStudentModal(studentData);
+        } catch (error) {
+            console.error('Error fetching student data:', error);
+            this.showAlert('Error loading student data', 'danger');
         }
     }
 
@@ -687,6 +930,24 @@ class AdminDashboard {
             } catch (error) {
                 console.error('Error deleting admin:', error);
                 this.showAlert('Error deleting admin', 'danger');
+            }
+        }
+    }
+
+    async deleteStudent(userId) {
+        if (confirm('Are you sure you want to delete this student?')) {
+            try {
+                const response = await this.deleteData(`/students/delete/${userId}`);
+                if (response.ok) {
+                    this.showAlert('Student deleted successfully', 'success');
+                    this.loadStudents();
+                } else {
+                    const error = await response.text();
+                    this.showAlert(`Error: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Error deleting student:', error);
+                this.showAlert('Error deleting student', 'danger');
             }
         }
     }
@@ -745,10 +1006,49 @@ class AdminDashboard {
         }
     }
 
+    async deleteEnrollment(studentId, courseId) {
+        if (confirm('Are you sure you want to drop this student from the course?')) {
+            try {
+                const response = await this.deleteData(`/students/${studentId}/drop/${courseId}`);
+                if (response.ok) {
+                    this.showAlert('Student dropped from course successfully', 'success');
+                    this.loadEnrollments();
+                } else {
+                    const error = await response.text();
+                    this.showAlert(`Drop failed: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Error dropping student:', error);
+                this.showAlert('Error dropping student from course', 'danger');
+            }
+        }
+    }
+
+    async viewEnrollmentDetails(studentId, courseId) {
+        try {
+            const [student, course] = await Promise.all([
+                this.fetchJSON(`/students/${studentId}`),
+                this.fetchJSON(`/courses/${courseId}`)
+            ]);
+
+            const message = `Enrollment Details:
+        
+Student: ${student.firstName} ${student.lastName} (${student.userId})
+Course: ${course.courseName} (${course.courseId})
+Department: ${course.department ? course.department.name : 'N/A'}
+Status: ACTIVE`;
+
+            alert(message);
+        } catch (error) {
+            console.error('Error fetching enrollment details:', error);
+            this.showAlert('Error loading enrollment details', 'danger');
+        }
+    }
+
     // Lecturer LIC Functions
     async makeLIC(lecturerId) {
         try {
-            const response = await fetch(`${this.baseURL}/admin/makeLic/${lecturerId}`);
+            const response = await fetch(`${this.baseURL}/admin/makeLic/${lecturerId}`, {method: 'PUT'});
             if (response.ok) {
                 this.showAlert('Lecturer promoted to LIC successfully', 'success');
                 this.loadLecturers();
@@ -764,7 +1064,7 @@ class AdminDashboard {
 
     async removeLIC(lecturerId) {
         try {
-            const response = await fetch(`${this.baseURL}/admin/removeLic/${lecturerId}`);
+            const response = await fetch(`${this.baseURL}/admin/removeLic/${lecturerId}`, {method: 'PUT'});
             if (response.ok) {
                 this.showAlert('LIC status removed successfully', 'success');
                 this.loadLecturers();
@@ -812,11 +1112,9 @@ class AdminDashboard {
 
     // Utility Functions
     showAlert(message, type) {
-        // Remove existing alerts
         const existingAlerts = document.querySelectorAll('.alert');
         existingAlerts.forEach(alert => alert.remove());
 
-        // Create new alert
         const alertDiv = document.createElement('div');
         alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
         alertDiv.innerHTML = `
@@ -824,355 +1122,14 @@ class AdminDashboard {
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
 
-        // Insert at the top of main content
         const mainContent = document.querySelector('main');
         mainContent.insertBefore(alertDiv, mainContent.firstChild);
 
-        // Auto dismiss after 5 seconds
         setTimeout(() => {
             if (alertDiv.parentNode) {
                 alertDiv.remove();
             }
         }, 5000);
-    }
-
-    viewStudent(userId) {
-        // Enhanced student view functionality with enrollment management
-        this.openStudentDetailModal(userId);
-    }
-
-    // Enhanced Student Management with Enrollment
-    async openStudentDetailModal(userId) {
-        try {
-            const modal = document.getElementById('studentDetailModal') || this.createStudentDetailModal();
-            const student = await this.fetchJSON(`/students/${userId}`);
-            const enrolledCourses = await this.fetchJSON(`/students/${userId}/courses`);
-            const allCourses = await this.fetchJSON('/courses');
-            
-            this.populateStudentDetailModal(student, enrolledCourses, allCourses);
-            const bootstrapModal = new bootstrap.Modal(modal);
-            bootstrapModal.show();
-        } catch (error) {
-            console.error('Error loading student details:', error);
-            this.showAlert('Error loading student details', 'danger');
-        }
-    }
-
-    createStudentDetailModal() {
-        const modalHtml = `
-            <div class="modal fade" id="studentDetailModal" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Student Details & Enrollment</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- Student Info Section -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <h6>Student Information</h6>
-                                    <div id="studentInfo"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>Department</h6>
-                                    <div id="studentDepartment"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- Enrollment Management Section -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>Current Enrollments</h6>
-                                    <div id="enrolledCourses" class="border p-3 mb-3" style="max-height: 300px; overflow-y: auto;"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>Enroll in New Course</h6>
-                                    <div class="mb-3">
-                                        <select id="availableCourses" class="form-select">
-                                            <option value="">Select a course...</option>
-                                        </select>
-                                    </div>
-                                    <button id="enrollStudentBtn" class="btn btn-primary">Enroll Student</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        return document.getElementById('studentDetailModal');
-    }
-
-    populateStudentDetailModal(student, enrolledCourses, allCourses) {
-        // Populate student info
-        document.getElementById('studentInfo').innerHTML = `
-            <p><strong>Name:</strong> ${student.firstName} ${student.lastName}</p>
-            <p><strong>Student ID:</strong> ${student.studentId}</p>
-            <p><strong>Email:</strong> ${student.email}</p>
-            <p><strong>Username:</strong> ${student.username}</p>
-        `;
-        
-        // Populate department info
-        document.getElementById('studentDepartment').innerHTML = `
-            <p><strong>Department:</strong> ${student.department ? student.department.name : 'Not Assigned'}</p>
-            ${student.department ? `<p><strong>Description:</strong> ${student.department.description}</p>` : ''}
-        `;
-        
-        // Populate enrolled courses
-        const enrolledCoursesDiv = document.getElementById('enrolledCourses');
-        if (!enrolledCourses || enrolledCourses.length === 0) {
-            enrolledCoursesDiv.innerHTML = '<p class="text-muted">No courses enrolled</p>';
-        } else {
-            enrolledCoursesDiv.innerHTML = enrolledCourses.map(course => `
-                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                    <div>
-                        <strong>${course.courseName}</strong><br>
-                        <small class="text-muted">${course.department ? course.department.name : 'No Department'}</small>
-                    </div>
-                    <button class="btn btn-sm btn-outline-danger" onclick="dashboard.dropStudentFromCourse('${student.userId}', '${course.courseId}')">
-                        Drop
-                    </button>
-                </div>
-            `).join('');
-        }
-        
-        // Populate available courses (exclude already enrolled)
-        const enrolledCourseIds = enrolledCourses ? enrolledCourses.map(c => c.courseId) : [];
-        const availableCoursesSelect = document.getElementById('availableCourses');
-        availableCoursesSelect.innerHTML = '<option value="">Select a course...</option>';
-        
-        allCourses.filter(course => !enrolledCourseIds.includes(course.courseId))
-                 .forEach(course => {
-            const option = document.createElement('option');
-            option.value = course.courseId;
-            option.textContent = `${course.courseName} (${course.department ? course.department.name : 'No Dept'})`;
-            availableCoursesSelect.appendChild(option);
-        });
-        
-        // Setup enroll button
-        document.getElementById('enrollStudentBtn').onclick = () => {
-            const courseId = availableCoursesSelect.value;
-            if (courseId) {
-                this.enrollStudentInCourse(student.userId, courseId);
-            } else {
-                this.showAlert('Please select a course first', 'warning');
-            }
-        };
-    }
-
-    async enrollStudentInCourse(studentId, courseId) {
-        try {
-            const response = await this.postData(`/students/${studentId}/enroll/${courseId}`, {});
-            if (response.ok) {
-                this.showAlert('Student enrolled successfully!', 'success');
-                // Refresh the modal content
-                this.openStudentDetailModal(studentId);
-            } else {
-                const error = await response.text();
-                this.showAlert(`Enrollment failed: ${error}`, 'danger');
-            }
-        } catch (error) {
-            console.error('Error enrolling student:', error);
-            this.showAlert('Error enrolling student', 'danger');
-        }
-    }
-
-    async dropStudentFromCourse(studentId, courseId) {
-        if (confirm('Are you sure you want to drop this student from the course?')) {
-            try {
-                const response = await this.deleteData(`/students/${studentId}/drop/${courseId}`);
-                if (response.ok) {
-                    this.showAlert('Student dropped from course successfully!', 'success');
-                    // Refresh the modal content
-                    this.openStudentDetailModal(studentId);
-                } else {
-                    const error = await response.text();
-                    this.showAlert(`Drop failed: ${error}`, 'danger');
-                }
-            } catch (error) {
-                console.error('Error dropping student:', error);
-                this.showAlert('Error dropping student from course', 'danger');
-            }
-        }
-    }
-
-    // Bulk Enrollment Management
-    openBulkEnrollmentModal() {
-        const modal = document.getElementById('bulkEnrollmentModal') || this.createBulkEnrollmentModal();
-        this.loadBulkEnrollmentData();
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
-    }
-
-    createBulkEnrollmentModal() {
-        const modalHtml = `
-            <div class="modal fade" id="bulkEnrollmentModal" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Bulk Student Enrollment</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="bulkCourseSelect" class="form-label">Select Course</label>
-                                    <select id="bulkCourseSelect" class="form-select">
-                                        <option value="">Choose a course...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="bulkDepartmentFilter" class="form-label">Filter by Department</label>
-                                    <select id="bulkDepartmentFilter" class="form-select">
-                                        <option value="">All Departments</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <h6>Available Students</h6>
-                                <div id="bulkStudentsList" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
-                                    <!-- Students will be loaded here -->
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <button id="selectAllStudents" class="btn btn-outline-primary">Select All</button>
-                                <button id="enrollSelectedStudents" class="btn btn-success">Enroll Selected Students</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        return document.getElementById('bulkEnrollmentModal');
-    }
-
-    async loadBulkEnrollmentData() {
-        try {
-            const [courses, departments, students] = await Promise.all([
-                this.fetchJSON('/courses'),
-                this.fetchJSON('/departments'), 
-                this.fetchJSON('/students')
-            ]);
-            
-            // Populate course dropdown
-            const courseSelect = document.getElementById('bulkCourseSelect');
-            courseSelect.innerHTML = '<option value="">Choose a course...</option>';
-            courses.forEach(course => {
-                const option = document.createElement('option');
-                option.value = course.courseId;
-                option.textContent = `${course.courseName} (${course.department ? course.department.name : 'No Dept'})`;
-                courseSelect.appendChild(option);
-            });
-            
-            // Populate department filter
-            const deptFilter = document.getElementById('bulkDepartmentFilter');
-            deptFilter.innerHTML = '<option value="">All Departments</option>';
-            departments.forEach(dept => {
-                const option = document.createElement('option');
-                option.value = dept.departmentId;
-                option.textContent = dept.name;
-                deptFilter.appendChild(option);
-            });
-            
-            // Setup event listeners
-            courseSelect.addEventListener('change', () => this.updateAvailableStudents());
-            deptFilter.addEventListener('change', () => this.updateAvailableStudents());
-            document.getElementById('selectAllStudents').addEventListener('click', () => this.selectAllStudents());
-            document.getElementById('enrollSelectedStudents').addEventListener('click', () => this.enrollSelectedStudents());
-            
-        } catch (error) {
-            console.error('Error loading bulk enrollment data:', error);
-            this.showAlert('Error loading data', 'danger');
-        }
-    }
-
-    async updateAvailableStudents() {
-        const courseId = document.getElementById('bulkCourseSelect').value;
-        const departmentFilter = document.getElementById('bulkDepartmentFilter').value;
-        
-        if (!courseId) {
-            document.getElementById('bulkStudentsList').innerHTML = '<p class="text-muted">Please select a course first</p>';
-            return;
-        }
-        
-        try {
-            const [allStudents, enrolledStudents] = await Promise.all([
-                this.fetchJSON('/students'),
-                this.fetchJSON(`/courses/${courseId}/students`).catch(() => []) // Handle if endpoint doesn't exist
-            ]);
-            
-            const enrolledStudentIds = enrolledStudents.map(s => s.userId);
-            const availableStudents = allStudents.filter(student => {
-                const notEnrolled = !enrolledStudentIds.includes(student.userId);
-                const matchesDepartment = !departmentFilter || 
-                    (student.department && student.department.departmentId === departmentFilter);
-                return notEnrolled && matchesDepartment;
-            });
-            
-            const studentsListDiv = document.getElementById('bulkStudentsList');
-            if (availableStudents.length === 0) {
-                studentsListDiv.innerHTML = '<p class="text-muted">No available students for this course</p>';
-            } else {
-                studentsListDiv.innerHTML = availableStudents.map(student => `
-                    <div class="form-check">
-                        <input class="form-check-input student-checkbox" type="checkbox" value="${student.userId}" id="student-${student.userId}">
-                        <label class="form-check-label" for="student-${student.userId}">
-                            ${student.firstName} ${student.lastName} (${student.studentId})
-                            <small class="text-muted">${student.department ? student.department.name : 'No Dept'}</small>
-                        </label>
-                    </div>
-                `).join('');
-            }
-        } catch (error) {
-            console.error('Error updating available students:', error);
-            this.showAlert('Error loading students', 'danger');
-        }
-    }
-
-    selectAllStudents() {
-        const checkboxes = document.querySelectorAll('.student-checkbox');
-        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-        checkboxes.forEach(cb => cb.checked = !allChecked);
-    }
-
-    async enrollSelectedStudents() {
-        const courseId = document.getElementById('bulkCourseSelect').value;
-        const selectedStudents = Array.from(document.querySelectorAll('.student-checkbox:checked'))
-                                      .map(cb => cb.value);
-        
-        if (!courseId || selectedStudents.length === 0) {
-            this.showAlert('Please select a course and at least one student', 'warning');
-            return;
-        }
-        
-        try {
-            const enrollmentPromises = selectedStudents.map(studentId => 
-                this.postData(`/students/${studentId}/enroll/${courseId}`, {})
-            );
-            
-            const results = await Promise.allSettled(enrollmentPromises);
-            const successful = results.filter(r => r.status === 'fulfilled' && r.value.ok).length;
-            const failed = results.length - successful;
-            
-            if (successful > 0) {
-                this.showAlert(`Successfully enrolled ${successful} students${failed > 0 ? `, ${failed} failed` : ''}`, 'success');
-            }
-            if (failed > 0 && successful === 0) {
-                this.showAlert(`Failed to enroll ${failed} students`, 'danger');
-            }
-            
-            // Refresh the available students list
-            this.updateAvailableStudents();
-            
-        } catch (error) {
-            console.error('Error enrolling students:', error);
-            this.showAlert('Error during bulk enrollment', 'danger');
-        }
     }
 }
 
@@ -1193,6 +1150,14 @@ function openCourseModal() {
     dashboard.openCourseModal();
 }
 
+function openStudentModal() {
+    dashboard.openStudentModal();
+}
+
+function openEnrollmentModal() {
+    dashboard.openEnrollmentModal();
+}
+
 function saveAdmin() {
     dashboard.saveAdmin();
 }
@@ -1207,6 +1172,14 @@ function saveDepartment() {
 
 function saveCourse() {
     dashboard.saveCourse();
+}
+
+function saveStudent() {
+    dashboard.saveStudent();
+}
+
+function saveEnrollment() {
+    dashboard.saveEnrollment();
 }
 
 function changePassword() {
