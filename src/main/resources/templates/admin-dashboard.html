@@ -332,19 +332,94 @@
                 <!-- Courses Section -->
                 <div id="courses" class="content-section">
                     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2">Course Management</h1>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#courseModal" onclick="openCourseModal()">
-                            <i class="bi bi-plus-lg me-1"></i>Add Course
+                        <h1 class="h2">
+                            <i class="bi bi-book me-2 text-primary"></i>
+                            Course Management
+                        </h1>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#courseModal" onclick="dashboard.openCourseModal()">
+                            <i class="bi bi-plus-circle me-1"></i>Add New Course
                         </button>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <i class="bi bi-book text-primary fs-1"></i>
+                                    <h4 class="mt-2" id="totalCourseCount">0</h4>
+                                    <p class="text-muted mb-0">Total Courses</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <i class="bi bi-building text-success fs-1"></i>
+                                    <h4 class="mt-2" id="courseDepartments">0</h4>
+                                    <p class="text-muted mb-0">Departments</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <i class="bi bi-people text-info fs-1"></i>
+                                    <h4 class="mt-2" id="totalCourseEnrollments">0</h4>
+                                    <p class="text-muted mb-0">Total Enrollments</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <i class="bi bi-graph-up text-warning fs-1"></i>
+                                    <h4 class="mt-2" id="avgStudentsPerCourseAdmin">0</h4>
+                                    <p class="text-muted mb-0">Avg Students/Course</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search and Actions -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="courseSearchInput" placeholder="Search courses by name or ID...">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="courseDepartmentFilter">
+                                        <option value="">All Departments</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100" onclick="dashboard.loadCourses()">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-outline-info w-100" onclick="dashboard.exportCourses()">
+                                        <i class="bi bi-download me-1"></i>Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Course ID</th>
                                     <th>Course Name</th>
                                     <th>Department</th>
+                                    <th>Enrolled Students</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -472,11 +547,11 @@
                     <form id="departmentForm">
                         <div class="mb-3">
                             <label for="departmentName" class="form-label">Department Name</label>
-                            <input type="text" class="form-control" id="departmentName" required>
+                            <input type="text" class="form-control" id="departmentName" name="departmentName" required>
                         </div>
                         <div class="mb-3">
                             <label for="departmentDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="departmentDescription" rows="3"></textarea>
+                            <textarea class="form-control" id="departmentDescription" name="departmentDescription" rows="3"></textarea>
                         </div>
                     </form>
                 </div>
@@ -500,11 +575,11 @@
                     <form id="courseForm">
                         <div class="mb-3">
                             <label for="courseName" class="form-label">Course Name</label>
-                            <input type="text" class="form-control" id="courseName" required>
+                            <input type="text" class="form-control" id="courseName" name="courseName" required>
                         </div>
                         <div class="mb-3">
                             <label for="courseDepartment" class="form-label">Department</label>
-                            <select class="form-control" id="courseDepartment" required>
+                            <select class="form-control" id="courseDepartment" name="courseDepartment" required>
                                 <!-- Options loaded dynamically -->
                             </select>
                         </div>
