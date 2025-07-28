@@ -133,4 +133,54 @@ public class AdminController {
 
     }
 
+    @PutMapping("/{lecturerId}/addToCourse/{courseId}")
+    public ResponseEntity<String> addLecturerToCourse(@PathVariable String  lecturerId, @PathVariable String courseId){
+
+        if (adminService.attachLecturerToDepartment(lecturerId, courseId)) {
+            return ResponseEntity.ok("Attached");
+        } else {
+            return ResponseEntity.badRequest().body("Attachment failed");
+        }
+
+    }
+
+    @GetMapping("/getAllAdmins")
+    public ResponseEntity<String> getAllAdmins() {
+
+        return ResponseEntity.ok(adminService.getAllAdmins().toString());
+
+    }
+
+    @GetMapping("/getAllLecturers")
+    public ResponseEntity<String> getAllLecturers() {
+
+        return ResponseEntity.ok(lecturerService.getAllLecturers().toString());
+
+    }
+
+    @GetMapping("/getAllDepartments")
+    public ResponseEntity<String> getAllDepartments() {
+
+        return null;
+
+        //return ResponseEntity.ok(adminService.getAllDepartments().toString());
+
+    }
+
+    @GetMapping("/getAllCourses")
+    public ResponseEntity<String> getAllCourses() {
+
+        return null;
+       //return ResponseEntity.ok(adminService.getAllCourses().toString());
+
+    }
+
+    @GetMapping("/getAllStudents")
+    public ResponseEntity<String> getAllStudents() {
+
+        return null;
+        //return ResponseEntity.ok(adminService.getAllStudents().toString());
+
+    }
+
 }

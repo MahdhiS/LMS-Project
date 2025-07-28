@@ -1,5 +1,6 @@
 package com.example.lmsproject.controller;
 
+import com.example.lmsproject.auth.AuthUtils;
 import com.example.lmsproject.entity.Department;
 import com.example.lmsproject.entity.Lecturer;
 import com.example.lmsproject.entity.PasswordChangeRequest;
@@ -20,6 +21,16 @@ public class LecturerController {
     // OP
     @GetMapping("/get/{lecturerId}")
     public Map<String, String> get(@PathVariable String lecturerId){
+
+        return lecturerService.get(lecturerId);
+
+    }
+
+    // OP
+    @GetMapping("/get-lecturer-info")
+    public Map<String, String> get(){
+
+        String lecturerId = AuthUtils.getUserName();
 
         return lecturerService.get(lecturerId);
 

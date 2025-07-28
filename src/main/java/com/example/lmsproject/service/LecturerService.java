@@ -1,13 +1,18 @@
 package com.example.lmsproject.service;
 
 import com.example.lmsproject.auth.PWEncoder;
+import com.example.lmsproject.entity.Course;
 import com.example.lmsproject.entity.Lecturer;
+import com.example.lmsproject.repository.CourseRepository;
 import com.example.lmsproject.repository.LecturerRepo;
 import com.example.lmsproject.utils.Utils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -15,6 +20,9 @@ public class LecturerService implements UserService<Lecturer> {
 
     @Autowired
     private LecturerRepo lecturerRepo;
+
+    @Autowired
+    private CourseRepository courseRepository;
 
     public Lecturer create(Lecturer lecturer){
 
@@ -96,8 +104,21 @@ public class LecturerService implements UserService<Lecturer> {
         lecturerMap.put("email", lecturer.getEmail());
         lecturerMap.put("phone", lecturer.getPhone());
         lecturerMap.put("isLIC", String.valueOf(lecturer.isLIC()));
+        lecturerMap.put("firstName", lecturer.getFirstName());
+        lecturerMap.put("lastName", lecturer.getLastName());
+        lecturerMap.put("courses", lecturer.getLecturingCourses() != null ? lecturer.getLecturingCourses().toString() : "No Courses");
 
         return lecturerMap;
+    }
+
+    public boolean addLecturerToCourse(Lecturer lecturer, String courseID){
+
+        Lecturer lecturerToUpdate = lecturerRepo.findByLecturerID(lecturer.getLecturerID());
+        //Course course =
+
+        return true;
+
+
     }
 
     public boolean addLecturerToDepartment(Lecturer lecturer, String departmentID){
@@ -107,5 +128,33 @@ public class LecturerService implements UserService<Lecturer> {
         return true;
 
     }
+
+    public JSONArray getAllLecturers() {
+
+        List<Lecturer> allAdmins = lecturerRepo.findByRole("LECTURER");
+
+        JSONArray jsonArray = new JSONArray();
+
+        for(Lecturer lecturer : allAdmins){
+
+            JSONObject lecturerJson = new JSONObject();
+
+            lecturerJson.put("userId", lecturer.getUserId());
+            lecturerJson.put("username", lecturer.getUsername());
+            lecturerJson.put("firstName", lecturer.getFirstName());
+            lecturerJson.put("lastName", lecturer.getLastName());
+            lecturerJson.put("email", lecturer.getEmail());
+            lecturerJson.put("phone", lecturer.getPhone());
+            lecturerJson.put("role", lecturer.getRole());
+            lecturerJson.put("department", lecturer.getDepartment() != null ? lecturer.getDepartment().getName() : "No Department");
+
+            jsonArray.put(lecturerJson);
+        }
+
+        return jsonArray;
+
+    }
+
+
 
 }
