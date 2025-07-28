@@ -30,9 +30,9 @@ public class LecturerController {
     @GetMapping("/get-lecturer-info")
     public Map<String, String> get(){
 
-        String lecturerId = AuthUtils.getUserName();
+        String userName = AuthUtils.getUserName();
 
-        return lecturerService.get(lecturerId);
+        return lecturerService.getByUsername(userName);
 
     }
 

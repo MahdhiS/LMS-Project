@@ -111,6 +111,21 @@ public class LecturerService implements UserService<Lecturer> {
         return lecturerMap;
     }
 
+    public Map<String, String> getByUsername(String lecturerID){
+        Lecturer lecturer = lecturerRepo.findByUsername(lecturerID);
+
+        Map<String, String> lecturerMap = new HashMap<>();
+        lecturerMap.put("lecturerID", lecturer.getLecturerID());
+        lecturerMap.put("email", lecturer.getEmail());
+        lecturerMap.put("phone", lecturer.getPhone());
+        lecturerMap.put("isLIC", String.valueOf(lecturer.isLIC()));
+        lecturerMap.put("firstName", lecturer.getFirstName());
+        lecturerMap.put("lastName", lecturer.getLastName());
+        lecturerMap.put("courses", lecturer.getLecturingCourses() != null ? lecturer.getLecturingCourses().toString() : "No Courses");
+
+        return lecturerMap;
+    }
+
     public boolean addLecturerToCourse(Lecturer lecturer, String courseID){
 
         Lecturer lecturerToUpdate = lecturerRepo.findByLecturerID(lecturer.getLecturerID());

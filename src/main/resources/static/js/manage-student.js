@@ -11,7 +11,7 @@ async function loadStudentProfile() {
         showLoading();
 
         // Get current student data from session/API
-        const response = await fetch('/api/students/current');
+        const response = await fetch('/api/students/get-student-info');
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
