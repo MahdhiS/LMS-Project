@@ -38,12 +38,12 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}/students")
-    public List<Student> getCourseStudents(@PathVariable Long courseId) {
+    public List<Student> getCourseStudents(@PathVariable String courseId) {
         return courseService.getCourseStudents(courseId);
     }
 
     @PutMapping("/{id}")
-    public Course updateCourse(@PathVariable Long id, @RequestBody Course course) {
+    public Course updateCourse(@PathVariable String id, @RequestBody Course course) {
         return courseService.updateCourse(id, course);
     }
 
@@ -52,7 +52,7 @@ public class CourseController {
     // enroll
     @PostMapping("/{courseId}/enroll/{studentId}")
     public Course enrollStudent(
-            @PathVariable Long courseId,
+            @PathVariable String courseId,
             @PathVariable String studentId) {
 
       return courseService.enrollStudentInCourse(studentId, courseId);
@@ -61,13 +61,13 @@ public class CourseController {
 
 
     @DeleteMapping("/{id}")
-    public boolean deleteCourse(@PathVariable Long id) {
+    public boolean deleteCourse(@PathVariable String id) {
         return courseService.deleteCourse(id);
     }
 
     @DeleteMapping("/{courseId}/drop/{studentId}")
     public Course dropStudent(
-            @PathVariable Long courseId,
+            @PathVariable String courseId,
             @PathVariable String studentId) {
 
         return courseService.dropStudentFromCourse(studentId, courseId);
