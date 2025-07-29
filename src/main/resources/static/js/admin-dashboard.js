@@ -267,7 +267,7 @@ class AdminDashboard {
         tbody.innerHTML = '';
 
         if (!Array.isArray(students) || students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No students found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">No students found</td></tr>';
             return;
         }
 
@@ -277,6 +277,7 @@ class AdminDashboard {
 
             row.innerHTML = `
                 <td>${student.userId || ''}</td>
+                <td>${student.studentId || 'N/A'}</td>
                 <td>${student.username || ''}</td>
                 <td>${student.firstName || ''}</td>
                 <td>${student.lastName || ''}</td>
@@ -671,6 +672,7 @@ class AdminDashboard {
 
     populateStudentForm(student) {
         document.getElementById('studentUserId').value = student.userId || '';
+        document.getElementById('studentStudentId').value = student.studentId || '';
         document.getElementById('studentUsername').value = student.username || '';
         document.getElementById('studentFirstName').value = student.firstName || '';
         document.getElementById('studentLastName').value = student.lastName || '';
@@ -814,6 +816,7 @@ class AdminDashboard {
     async saveStudent() {
         const studentData = {
             userId: document.getElementById('studentUserId').value,
+            studentId: document.getElementById('studentStudentId').value,
             username: document.getElementById('studentUsername').value,
             password: document.getElementById('studentPassword').value,
             firstName: document.getElementById('studentFirstName').value,
