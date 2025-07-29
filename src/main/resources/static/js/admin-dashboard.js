@@ -416,7 +416,7 @@ class AdminDashboard {
         tbody.innerHTML = '';
 
         if (!Array.isArray(enrollments) || enrollments.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center">No enrollments found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No enrollments found</td></tr>';
             return;
         }
 
@@ -426,7 +426,6 @@ class AdminDashboard {
             const statusBadgeClass = this.getStatusBadgeClass(enrollment.status);
 
             row.innerHTML = `
-                <td>${enrollment.enrollmentId || ''}</td>
                 <td>${enrollment.course ? enrollment.course.courseId : 'N/A'}</td>
                 <td>${enrollment.student ? enrollment.student.userId : 'N/A'}</td>
                 <td>${enrollmentDate}</td>
@@ -437,7 +436,7 @@ class AdminDashboard {
                             <i class="bi bi-eye"></i> View
                         </button>
                         <button class="btn btn-danger btn-sm" onclick="dashboard.deleteEnrollment('${enrollment.student.userId}', '${enrollment.course.courseId}')">
-                            <i class="bi bi-trash"></i> Drop
+                            <i class="bi bi-trash"></i> Remove
                         </button>
                     </div>
                 </td>
