@@ -4,6 +4,7 @@ import com.example.lmsproject.entity.Department;
 import com.example.lmsproject.entity.Student;
 import com.example.lmsproject.repository.DepartmentRepository;
 import com.example.lmsproject.repository.StudentRepository;
+import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +18,20 @@ public class DepartmentService {
     private StudentRepository studentRepository;
 
     public Department saveDetails(Department department) {
+
+        String lastDepartmenId = departmentRepository.getLastdepartmentId();
+        if(lastDepartmenId != null){
+            department.setDepartmentId(Utils.nextId(lastDepartmenId));
+        }
+        else {
+            department.setDepartmentId("DEP-00001");
+        }
+
         return departmentRepository.save(department);
     }
 
-    public Department getDepartmentById(long id) {
-        return departmentRepository.findById(id).orElse(null);
+    public Department getDepartmentById(String id) {
+        return departmentRepository.findByDepartmentId(id);
     }
 
     public List<Department> getAllDepartments() {
@@ -29,7 +39,7 @@ public class DepartmentService {
     }
 
     //one to many
-    public List<Student> getDepartmentStudents(long id) {
+    public List<Student> getDepartmentStudents(String id) {
         Department department = getDepartmentById(id);
         if (department != null) {
             return department.getStudents();
@@ -37,8 +47,8 @@ public class DepartmentService {
         return null;
     }
 
-    public boolean deleteDepartment(Long id) {
-        Department department = departmentRepository.findById(id).orElse(null);
+    public boolean deleteDepartment(String id) {
+        Department department = departmentRepository.findByDepartmentId(id);
         if (department != null) {
             // Set students department to null
             for (Student student : department.getStudents()) {
@@ -47,14 +57,14 @@ public class DepartmentService {
             }
 
             // Then delete the department
-            departmentRepository.deleteById(id);
+            departmentRepository.delete(department);
             return true;
         }
         return false;
     }
 
-    public Department updateDepartment(long id, Department departmentDetails) {
-        Department department = departmentRepository.findById(id).orElse(null);
+    public Department updateDepartment(String id, Department departmentDetails) {
+        Department department = departmentRepository.findByDepartmentId(id);
         if (department != null) {
             department.setName(departmentDetails.getName());
             department.setDescription(departmentDetails.getDescription());

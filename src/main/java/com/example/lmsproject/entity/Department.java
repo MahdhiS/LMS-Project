@@ -17,8 +17,7 @@ import java.util.List;
 public class Department {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String departmentId;
 
     @Column(nullable = false)
     private String name;
@@ -47,12 +46,12 @@ public class Department {
         this.students = students;
     }
 
-    public Long getId() {
-        return id;
+    public String getId() {
+        return departmentId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setDepartmentId(String departmentId) {
+        this.departmentId = departmentId;
     }
 
     public String getName() {

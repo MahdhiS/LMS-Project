@@ -3,10 +3,8 @@ package com.example.lmsproject.controller;
 import com.example.lmsproject.entity.Course;
 import com.example.lmsproject.entity.Student;
 import com.example.lmsproject.service.CourseService;
-import com.example.lmsproject.service.DepartmentService;
 import com.example.lmsproject.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +15,6 @@ public class StudentController {
 
     @Autowired
     private StudentService studentService;
-    @Autowired
-    private DepartmentService departmentService;
     @Autowired
     private CourseService courseService;
 
@@ -67,12 +63,12 @@ public class StudentController {
     @PutMapping("/{userId}/assign-department/{departmentId}")
     public Student assignStudentToDepartment(
             @PathVariable String userId,
-            @PathVariable Long departmentId) {
+            @PathVariable String departmentId) {
         return studentService.assignStudentToDepartment(userId, departmentId);
     }
 
     @GetMapping("/department/{departmentId}")
-    public List<Student> getStudentsByDepartment(@PathVariable Long departmentId) {
+    public List<Student> getStudentsByDepartment(@PathVariable String departmentId) {
         return studentService.getStudentsByDepartmentId(departmentId);
     }
 
@@ -86,7 +82,7 @@ public class StudentController {
     @PostMapping("/{studentId}/enroll/{courseId}")
     public Course enrollInCourse(
             @PathVariable String studentId,
-            @PathVariable Long courseId) {
+            @PathVariable String courseId) {
 
         return courseService.enrollStudentInCourse(studentId, courseId);
 
@@ -96,7 +92,7 @@ public class StudentController {
     @DeleteMapping("/{studentId}/drop/{courseId}")
     public Course dropCourse(
             @PathVariable String studentId,
-            @PathVariable Long courseId) {
+            @PathVariable String courseId) {
 
        return courseService.dropStudentFromCourse(studentId, courseId);
 

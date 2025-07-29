@@ -1,11 +1,12 @@
 package com.example.lmsproject.service;
 
 
+import com.example.lmsproject.auth.PWEncoder;
 import com.example.lmsproject.entity.Department;
 import com.example.lmsproject.entity.Student;
 import com.example.lmsproject.repository.DepartmentRepository;
 import com.example.lmsproject.repository.StudentRepository;
-import jakarta.transaction.Transactional;
+import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,25 @@ public class StudentService {
 
 
     public Student saveDetails(Student student) {
+
+        String lastUserID = studentRepository.getLastUserID();
+        if(lastUserID != null){
+            student.setUserId(Utils.nextId(lastUserID));
+        } else {
+            student.setUserId("USER-0000001");
+        }
+
+        String lastStudentId = studentRepository.getLastStudentId();
+        if(lastStudentId != null){
+            student.setStudentId(Utils.nextId(lastStudentId));
+        }
+        else {
+            student.setStudentId("STD-0000001");
+        }
+
+        student.setRole("STUDENT");
+        student.setPassword(PWEncoder.encode(student.getPassword()));
+
         return studentRepository.save(student);
     }
 
@@ -33,8 +53,8 @@ public class StudentService {
     }
 
 
-    public List<Student> getStudentsByDepartmentId(Long departmentId){
-        return studentRepository.findByDepartmentId(departmentId);
+    public List<Student> getStudentsByDepartmentId(String departmentId){
+        return studentRepository.findByDepartmentDepartmentId(departmentId);
     }
 
     public List<Student> getAllStudents(){
@@ -61,10 +81,10 @@ public class StudentService {
         return false;
     }
 
-    public Student assignStudentToDepartment(String userId, Long departmentId) {
+    public Student assignStudentToDepartment(String userId, String departmentId) {
         Student student = studentRepository.findById(userId).orElse(null);
         if (student != null) {
-            Department department = departmentRepository.findById(departmentId).orElse(null);
+            Department department = departmentRepository.findByDepartmentId(departmentId);
             student.setDepartment(department);
             return studentRepository.save(student);
         }

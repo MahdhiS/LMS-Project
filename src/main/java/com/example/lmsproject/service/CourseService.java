@@ -6,6 +6,7 @@ import com.example.lmsproject.entity.Student;
 import com.example.lmsproject.repository.CourseRepository;
 import com.example.lmsproject.repository.DepartmentRepository;
 import com.example.lmsproject.repository.StudentRepository;
+import com.example.lmsproject.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,14 @@ public class CourseService {
 
 
     public Course saveCourse(Course course) {
+        String lastCourseId = courseRepository.getLastCourseId();
+        if(lastCourseId != null){
+            course.setCourseId(Utils.nextId(lastCourseId));
+        }
+        else {
+            course.setCourseId("CRS-00001");
+        }
+
         return courseRepository.save(course);
     }
 
@@ -33,15 +42,15 @@ public class CourseService {
         return courseRepository.findAll();
     }
 
-    public Course getCourseById(Long id) {
-        return courseRepository.findById(id).orElse(null);
+    public Course getCourseById(String id) {
+        return courseRepository.findByCourseId(id);
     }
 
-    public List<Course> getCoursesByDepartment(Long departmentId) {
+    public List<Course> getCoursesByDepartment(String departmentId) {
         return courseRepository.findByDepartmentId(departmentId);
     }
 
-    public Course updateCourse(Long id, Course updatedCourse) {
+    public Course updateCourse(String id, Course updatedCourse) {
         Course course = courseRepository.findById(id).orElse(null);
         if (course != null) {
             course.setCourseName(updatedCourse.getCourseName());
@@ -51,7 +60,7 @@ public class CourseService {
         return null;
     }
 
-    public boolean deleteCourse(Long id) {
+    public boolean deleteCourse(String id) {
         if (courseRepository.existsById(id)) {
             courseRepository.deleteById(id);
             return true;
@@ -60,7 +69,7 @@ public class CourseService {
     }
 
     //enroll
-    public Course enrollStudentInCourse(String studentId, Long courseId) {
+    public Course enrollStudentInCourse(String studentId, String courseId) {
         Student student = studentRepository.findById(studentId).orElse(null);
         Course course = courseRepository.findById(courseId).orElse(null);
 
@@ -89,7 +98,7 @@ public class CourseService {
     }
 
 
-    public Course dropStudentFromCourse(String studentId, Long courseId) {
+    public Course dropStudentFromCourse(String studentId, String courseId) {
         Student student = studentRepository.findById(studentId).orElse(null);
         Course course = courseRepository.findById(courseId).orElse(null);
 
@@ -126,7 +135,7 @@ public class CourseService {
     }
 
     // get all students enrolled for a course
-    public List<Student> getCourseStudents(Long courseId) {
+    public List<Student> getCourseStudents(String courseId) {
         Course course = courseRepository.findById(courseId).orElse(null);
         if (course != null) {
             return course.getStudents();

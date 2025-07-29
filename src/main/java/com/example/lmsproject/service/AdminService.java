@@ -95,12 +95,15 @@ public class AdminService implements UserService<Admin> {
     public boolean attachLecturerToDepartment(String lecturerId, String departmentID){
 
         Lecturer lecturer = lecturerRepo.findByLecturerID(lecturerId);
-        Department department = departmentRepository.getReferenceById(100L); // Replace with String departmnt ID
+        Department department = departmentRepository.findByDepartmentId(departmentID);
 
-        lecturer.setDepartment(department);
+        if (lecturer != null && department != null) {
+            lecturer.setDepartment(department);
+            lecturerRepo.save(lecturer);
+            return true;
+        }
 
-        return true;
-
+        return false;
     }
 
     public JSONArray getAllAdmins() {
