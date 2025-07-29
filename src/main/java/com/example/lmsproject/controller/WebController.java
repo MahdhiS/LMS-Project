@@ -18,4 +18,14 @@ public class WebController {
     public String manageLecturer() {
         return "manage-lecturer";
     }
+
+    @GetMapping("/manage-student")
+    public String manageStudent() {
+        return "manage-student";
+    }
+
+    @GetMapping("/course-view")
+    public String courseView() {
+        return "course-view";
+    }
 }

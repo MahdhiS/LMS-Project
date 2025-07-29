@@ -99,20 +99,34 @@ function displayCourses(coursesData) {
         // Display courses
         let coursesHtml = '';
         courses.forEach((course, index) => {
-            let courseName, courseCode;
+            let courseName, courseCode, courseId, departmentName;
 
             if (typeof course === 'object' && course !== null) {
                 courseName = course.courseName || course.name || course.title || `Course ${index + 1}`;
                 courseCode = course.courseCode || course.code || course.id || `COURSE-${index + 1}`;
+                courseId = course.courseId || course.id || courseCode;
+                departmentName = course.department ? course.department.departmentName || course.department.name || 'No Department' : 'No Department';
             } else {
                 courseName = course.toString();
                 courseCode = `COURSE-${index + 1}`;
+                courseId = courseCode;
+                departmentName = 'No Department';
             }
 
             coursesHtml += `
                 <div class="course-item">
-                    <div class="course-name">${courseName}</div>
-                    <div class="course-code">${courseCode}</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="course-info">
+                            <div class="course-name">${courseName}</div>
+                            <div class="course-code">${courseCode}</div>
+                            <small class="text-muted">${departmentName}</small>
+                        </div>
+                        <div class="course-actions">
+                            <button class="btn btn-primary btn-sm" onclick="viewCourse('${courseId}', '${courseName}', '${courseCode}', '${departmentName}')">
+                                <i class="fas fa-eye me-1"></i>View Course
+                            </button>
+                        </div>
+                    </div>
                 </div>
             `;
         });
@@ -128,6 +142,18 @@ function displayCourses(coursesData) {
             </div>
         `;
     }
+}
+
+// Navigate to course view page
+function viewCourse(courseId, courseName, courseCode, departmentName) {
+    const params = new URLSearchParams({
+        courseId: courseId || '',
+        courseName: courseName || '',
+        courseCode: courseCode || '',
+        department: departmentName || ''
+    });
+
+    window.location.href = `/course-view?${params.toString()}`;
 }
 
 // Setup password change modal

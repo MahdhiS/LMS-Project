@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details - LMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/course-view.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-graduation-cap me-2"></i>LMS System
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/manage-student">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+                <a class="nav-link" href="/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading course details...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="alert alert-danger d-none" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="errorText">Failed to load course details. Please try again.</span>
+        </div>
+
+        <!-- Course Content -->
+        <div id="courseContent" class="d-none">
+            <!-- Course Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="course-header">
+                        <h2><i class="fas fa-book-open me-2"></i><span id="courseName">Course Name</span></h2>
+                        <p class="text-muted">Course Code: <span id="courseCode">Loading...</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Details -->
+            <div class="row">
+                <!-- Main Course Information -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Course Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-group">
+                                        <label class="info-label">Course Name</label>
+                                        <p class="info-value" id="courseNameDetail">-</p>
+                                    </div>
+                                    <div class="info-group">
+                                        <label class="info-label">Course Code</label>
+                                        <p class="info-value" id="courseCodeDetail">-</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-group">
+                                        <label class="info-label">Department</label>
+                                        <p class="info-value" id="departmentName">
+                                            <span class="badge bg-info" id="departmentBadge">-</span>
+                                        </p>
+                                    </div>
+                                    <div class="info-group">
+                                        <label class="info-label">Enrollment Status</label>
+                                        <p class="info-value">
+                                            <span class="badge bg-success">Enrolled</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Lecturers -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>Course Lecturers
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="lecturersContainer">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-user-tie fa-2x mb-2"></i>
+                                    <p class="mb-0 small">Lecturer information will be available soon</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/course-view.js"></script>
+</body>
+</html>
